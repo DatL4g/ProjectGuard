@@ -18,16 +18,19 @@ import org.gradle.work.DisableCachingByDefault
 abstract class DependencyGuardAggregateReportTask : DefaultTask() {
 
     @get:InputFiles
-    abstract val violationFiles: ConfigurableFileCollection
+    abstract val reportFiles: ConfigurableFileCollection
 
     @get:OutputFile
     abstract val reportLocation: RegularFileProperty
 
-    private val json = Json { prettyPrint = true }
+    private val json = Json {
+        prettyPrint = true
+        prettyPrintIndent = "  "
+    }
 
     @TaskAction
     fun generateReport() {
-        val allViolations = violationFiles.files.flatMap { file ->
+        val restrictionMatches = reportFiles.files.flatMap { file ->
             if (file.exists()) {
                 Json.decodeFromString<List<RestrictionMatch>>(file.readText())
             } else {
@@ -36,14 +39,14 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
         }
 
         val report = DependencyGuardReport(
-            modules = allViolations.groupBy { it.modulePath }
+            modules = restrictionMatches.groupBy { it.modulePath }
                 .map { (modulePath, matches) ->
                     ModuleReport(
                         module = modulePath,
-                        fatalMatches = matches.filter { !it.isExcluded }.map { match ->
+                        fatal = matches.filter { !it.isSuppressed }.map { match ->
                             mapMatch(match)
                         },
-                        excludedMatches = matches.filter { it.isExcluded }.map { match ->
+                        suppressed = matches.filter { it.isSuppressed }.map { match ->
                             mapMatch(match)
                         }
                     )
@@ -60,6 +63,7 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
         return Match(
             dependency = match.dependencyPath,
             reason = match.reason,
+            suppressionReason = match.suppressionReason,
         )
     }
 }

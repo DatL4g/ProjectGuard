@@ -5,8 +5,8 @@ import java.util.Locale
 internal class HtmlReportGenerator {
 
     fun generate(report: DependencyGuardReport): String {
-        val fatalModules = report.modules.filter { it.fatalMatches.isNotEmpty() }
-        val excludedModules = report.modules.filter { it.excludedMatches.isNotEmpty() }
+        val fatalModules = report.modules.filter { it.fatal.isNotEmpty() }
+        val suppressedModules = report.modules.filter { it.suppressed.isNotEmpty() }
         return """
         <!DOCTYPE html>
         <html lang="en">
@@ -19,8 +19,8 @@ internal class HtmlReportGenerator {
             </style>
         </head>
         <body>
-            ${generateSidebar(fatalModules, excludedModules)}
-            ${generateMainContent(report, fatalModules, excludedModules)}
+            ${generateSidebar(fatalModules, suppressedModules)}
+            ${generateMainContent(report, fatalModules, suppressedModules)}
         </body>
         </html>
         """.trimIndent()
@@ -34,30 +34,39 @@ internal class HtmlReportGenerator {
         return "Top-level Modules"
     }
 
-    private fun generateSidebar(fatalModules: List<ModuleReport>, excludedModules: List<ModuleReport>): String {
+    private fun generateSidebar(
+        fatalModules: List<ModuleReport>,
+        suppressedModules: List<ModuleReport>,
+    ): String {
         val fatalGroups = fatalModules.groupBy { getGroupName(it.module) }.toSortedMap()
-        val excludedGroups = excludedModules.groupBy { getGroupName(it.module) }.toSortedMap()
+        val suppressedGroups = suppressedModules.groupBy { getGroupName(it.module) }.toSortedMap()
 
         return """
         <div class="sidebar">
             ${generateToc("Fatal Matches", fatalGroups)}
-            ${generateToc("Excluded Matches", excludedGroups, isExcluded = true)}
+            ${generateToc("Suppressed Matches", suppressedGroups, isSuppressed = true)}
         </div>
         """.trimIndent()
     }
 
-    private fun generateToc(title: String, groups: Map<String, List<ModuleReport>>, isExcluded: Boolean = false): String {
+    private fun generateToc(
+        title: String,
+        groups: Map<String, List<ModuleReport>>,
+        isSuppressed: Boolean = false,
+    ): String {
         if (groups.isEmpty()) return ""
-        val anchorPrefix = if (isExcluded) "excluded" else "fatal"
+        val anchorPrefix = if (isSuppressed) "suppressed" else "fatal"
         val tocHtml = groups.map { (groupName, modules) ->
-            val anchorId = "$anchorPrefix-${groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())}"
-            val count = if (isExcluded) {
-                modules.sumOf { it.excludedMatches.size }
+            val anchorId = "$anchorPrefix-${
+                groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())
+            }"
+            val count = if (isSuppressed) {
+                modules.sumOf { it.suppressed.size }
             } else {
-                modules.sumOf { it.fatalMatches.size }
+                modules.sumOf { it.fatal.size }
             }
-            val badgeClass = if(isExcluded) "excluded" else "fatal"
-            
+            val badgeClass = if (isSuppressed) "suppressed" else "fatal"
+
             """
             <li>
                 <a href="#$anchorId">
@@ -83,11 +92,12 @@ internal class HtmlReportGenerator {
     private fun generateMainContent(
         report: DependencyGuardReport,
         fatalModules: List<ModuleReport>,
-        excludedModules: List<ModuleReport>
+        suppressedModules: List<ModuleReport>,
     ): String {
-        val totalFatalMatches = fatalModules.sumOf { it.fatalMatches.size }
+        val totalFatalMatches = fatalModules.sumOf { it.fatal.size }
         val fatalContent = generateSectionContent("Fatal Matches", fatalModules)
-        val excludedContent = generateSectionContent("Excluded Matches", excludedModules, isExcluded = true)
+        val suppressedContent =
+            generateSectionContent("Suppressed Matches", suppressedModules, isSuppressed = true)
 
         return """
         <div class="main-content">
@@ -100,20 +110,24 @@ internal class HtmlReportGenerator {
                 </header>
                 <main>
                     $fatalContent
-                    $excludedContent
+                    $suppressedContent
                 </main>
             </div>
         </div>
         """.trimIndent()
     }
 
-    private fun generateSectionContent(title: String, modules: List<ModuleReport>, isExcluded: Boolean = false): String {
+    private fun generateSectionContent(
+        title: String,
+        modules: List<ModuleReport>,
+        isSuppressed: Boolean = false,
+    ): String {
         if (modules.isEmpty()) return ""
         val groupedModules = modules.groupBy { getGroupName(it.module) }.toSortedMap()
         val groupHtml = groupedModules.map { (groupName, moduleList) ->
-            generateModuleGroup(groupName, moduleList, isExcluded)
+            generateModuleGroup(groupName, moduleList, isSuppressed)
         }.joinToString("\n")
-        val titleClass = if(isExcluded) "excluded-title" else "fatal-title"
+        val titleClass = if (isSuppressed) "suppressed-title" else "fatal-title"
         return """
             <section>
                 <h2 class="$titleClass">$title</h2>
@@ -123,11 +137,17 @@ internal class HtmlReportGenerator {
     }
 
 
-    private fun generateModuleGroup(groupName: String, modules: List<ModuleReport>, isExcluded: Boolean): String {
-        val anchorPrefix = if (isExcluded) "excluded" else "fatal"
-        val anchorId = "$anchorPrefix-${groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())}"
+    private fun generateModuleGroup(
+        groupName: String,
+        modules: List<ModuleReport>,
+        isSuppressed: Boolean,
+    ): String {
+        val anchorPrefix = if (isSuppressed) "suppressed" else "fatal"
+        val anchorId = "$anchorPrefix-${
+            groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())
+        }"
         val moduleDetailsHtml = modules.joinToString("\n") { moduleReport ->
-            generateModuleDetails(moduleReport)
+            generateModuleDetails(moduleReport, isSuppressed)
         }
         return """
         <div class="group-container" id="$anchorId">
@@ -137,32 +157,36 @@ internal class HtmlReportGenerator {
         """.trimIndent()
     }
 
-    private fun generateModuleDetails(moduleReport: ModuleReport): String {
-        val fatalMatches = generateTable(moduleReport.fatalMatches)
-        val excludedMatchesHtml = generateTable(moduleReport.excludedMatches, isExcluded = true)
+    private fun generateModuleDetails(moduleReport: ModuleReport, isSuppressed: Boolean): String {
+        val matches = if (isSuppressed) moduleReport.suppressed else moduleReport.fatal
+        val table = generateTable(matches, isSuppressed)
 
         return """
         <details class="module" open>
             <summary>
                 <h4>${moduleReport.module}</h4>
                 <div>
-                    ${if (moduleReport.fatalMatches.isNotEmpty()) """<span class="badge fatal">${moduleReport.fatalMatches.size} fatal</span>""" else ""}
-                    ${if (moduleReport.excludedMatches.isNotEmpty()) """<span class="badge excluded">${moduleReport.excludedMatches.size} excluded</span>""" else ""}
+                    ${if (moduleReport.fatal.isNotEmpty()) """<span class="badge fatal">${moduleReport.fatal.size} fatal</span>""" else ""}
+                    ${if (moduleReport.suppressed.isNotEmpty()) """<span class="badge suppressed">${moduleReport.suppressed.size} suppressed</span>""" else ""}
                 </div>
             </summary>
-            $fatalMatches
-            $excludedMatchesHtml
+            $table
         </details>
         """.trimIndent()
     }
 
-    private fun generateTable(matches: List<Match>, isExcluded: Boolean = false): String {
+    private fun generateTable(
+        matches: List<Match>,
+        isSuppressed: Boolean
+    ): String {
         if (matches.isEmpty()) return ""
+        val reasonHeader = if (isSuppressed) "Suppression Reason" else "Restriction Reason"
         val tableRows = matches.joinToString("\n") { match ->
+            val reason = if (isSuppressed) match.suppressionReason ?: "" else match.reason
             """
             <tr>
                 <td><code>${match.dependency}</code></td>
-                <td>${match.reason}</td>
+                <td>${reason}</td>
             </tr>
             """.trimIndent()
         }
@@ -172,7 +196,7 @@ internal class HtmlReportGenerator {
                 <thead>
                     <tr>
                         <th>Dependency</th>
-                        <th>Reason</th>
+                        <th>$reasonHeader</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -189,7 +213,7 @@ internal class HtmlReportGenerator {
             --color-background: #f8f9fa;
             --color-surface: #ffffff;
             --color-fatal: #d32f2f;
-            --color-excluded: #6c757d;
+            --color-suppressed: #6c757d;
             --color-text-primary: #212529;
             --color-text-secondary: #6c757d;
             --color-border: #dee2e6;
@@ -273,7 +297,7 @@ internal class HtmlReportGenerator {
             margin-bottom: 1.5rem;
         }
         .fatal-title { color: var(--color-fatal); }
-        .excluded-title { color: var(--color-excluded); }
+        .suppressed-title { color: var(--color-suppressed); }
         
         .group-container { margin-bottom: 2rem; }
         .group-container:last-child { margin-bottom: 0; }
@@ -307,7 +331,7 @@ internal class HtmlReportGenerator {
             margin-left: 0.5rem;
         }
         .badge.fatal { background-color: var(--color-fatal); }
-        .badge.excluded { background-color: var(--color-excluded); }
+        .badge.suppressed { background-color: var(--color-suppressed); }
         .table-container { padding: 0 1.5rem 1rem; }
         table {
             width: 100%;

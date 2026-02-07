@@ -10,13 +10,13 @@ internal data class DependencyGuardReport(
 @Serializable
 internal data class ModuleReport(
     val module: String,
-    val fatalMatches: List<Match>,
-    val excludedMatches: List<Match>
+    val fatal: List<Match>,
+    val suppressed: List<Match>
 )
 
 @Serializable
 internal data class Match(
     val dependency: String,
     val reason: String,
+    val suppressionReason: String? = null
 )
-
