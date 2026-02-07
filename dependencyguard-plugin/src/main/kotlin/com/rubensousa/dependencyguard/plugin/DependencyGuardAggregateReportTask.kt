@@ -2,8 +2,9 @@ package com.rubensousa.dependencyguard.plugin
 
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardReport
+import com.rubensousa.dependencyguard.plugin.internal.FatalMatch
 import com.rubensousa.dependencyguard.plugin.internal.ModuleReport
-import com.rubensousa.dependencyguard.plugin.internal.Match
+import com.rubensousa.dependencyguard.plugin.internal.SuppressedMatch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
@@ -44,10 +45,16 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
                     ModuleReport(
                         module = modulePath,
                         fatal = matches.filter { !it.isSuppressed }.map { match ->
-                            mapMatch(match)
+                            FatalMatch(
+                                dependency = match.dependencyPath,
+                                reason = match.reason,
+                            )
                         },
                         suppressed = matches.filter { it.isSuppressed }.map { match ->
-                            mapMatch(match)
+                            SuppressedMatch(
+                                dependency = match.dependencyPath,
+                                suppressionReason = match.suppressionReason,
+                            )
                         }
                     )
                 }.sortedBy { it.module }
@@ -59,11 +66,4 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
         }
     }
 
-    private fun mapMatch(match: RestrictionMatch): Match {
-        return Match(
-            dependency = match.dependencyPath,
-            reason = match.reason,
-            suppressionReason = match.suppressionReason,
-        )
-    }
 }

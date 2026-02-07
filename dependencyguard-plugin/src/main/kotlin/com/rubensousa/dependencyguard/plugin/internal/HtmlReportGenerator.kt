@@ -158,9 +158,11 @@ internal class HtmlReportGenerator {
     }
 
     private fun generateModuleDetails(moduleReport: ModuleReport, isSuppressed: Boolean): String {
-        val matches = if (isSuppressed) moduleReport.suppressed else moduleReport.fatal
-        val table = generateTable(matches, isSuppressed)
-
+        val table = if(isSuppressed) {
+            generateSuppressedTable(moduleReport.suppressed)
+        } else {
+            generateFatalTable(moduleReport.fatal)
+        }
         return """
         <details class="module" open>
             <summary>
@@ -175,14 +177,44 @@ internal class HtmlReportGenerator {
         """.trimIndent()
     }
 
-    private fun generateTable(
-        matches: List<Match>,
-        isSuppressed: Boolean
+    private fun generateFatalTable(
+        matches: List<FatalMatch>,
     ): String {
         if (matches.isEmpty()) return ""
-        val reasonHeader = if (isSuppressed) "Suppression Reason" else "Restriction Reason"
+        val reasonHeader = "Restriction Reason"
         val tableRows = matches.joinToString("\n") { match ->
-            val reason = if (isSuppressed) match.suppressionReason ?: "" else match.reason
+            val reason = match.reason
+            """
+            <tr>
+                <td><code>${match.dependency}</code></td>
+                <td>${reason}</td>
+            </tr>
+            """.trimIndent()
+        }
+        return """
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dependency</th>
+                        <th>$reasonHeader</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    $tableRows
+                </tbody>
+            </table>
+        </div>
+        """.trimIndent()
+    }
+
+    private fun generateSuppressedTable(
+        matches: List<SuppressedMatch>,
+    ): String {
+        if (matches.isEmpty()) return ""
+        val reasonHeader = "Suppression Reason"
+        val tableRows = matches.joinToString("\n") { match ->
+            val reason =match.suppressionReason
             """
             <tr>
                 <td><code>${match.dependency}</code></td>
