@@ -57,9 +57,7 @@ internal class HtmlReportGenerator {
         if (groups.isEmpty()) return ""
         val anchorPrefix = if (isSuppressed) "suppressed" else "fatal"
         val tocHtml = groups.map { (groupName, modules) ->
-            val anchorId = "$anchorPrefix-${
-                groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())
-            }"
+            val groupAnchorId = "$anchorPrefix-${groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())}"
             val count = if (isSuppressed) {
                 modules.sumOf { it.suppressed.size }
             } else {
@@ -67,13 +65,31 @@ internal class HtmlReportGenerator {
             }
             val badgeClass = if (isSuppressed) "suppressed" else "fatal"
 
+            val childModulesHtml = modules.sortedBy { it.module }.joinToString("\n") { moduleReport ->
+                val childCount = if (isSuppressed) moduleReport.suppressed.size else moduleReport.fatal.size
+                if (childCount == 0) "" else {
+                    val moduleAnchorId = "$anchorPrefix-module-${moduleReport.module.substring(1).replace(":", "-")}"
+                    val childBadgeClass = if (isSuppressed) "suppressed-light" else "fatal-light"
+                    val moduleName = moduleReport.module.split(':').last()
+                    """
+                    <li>
+                        <a href="#$moduleAnchorId">
+                            <span>$moduleName</span>
+                            <span class="badge $childBadgeClass">$childCount</span>
+                        </a>
+                    </li>
+                    """
+                }
+            }
+
             """
-            <li>
-                <a href="#$anchorId">
-                    <span>$groupName</span>
+            <details>
+                <summary>
+                    <a href="#$groupAnchorId">$groupName</a>
                     <span class="badge $badgeClass">$count</span>
-                </a>
-            </li>
+                </summary>
+                ${if (childModulesHtml.isNotBlank()) "<ul>\n$childModulesHtml\n</ul>" else ""}
+            </details>
             """
         }.joinToString("\n")
 
@@ -81,9 +97,7 @@ internal class HtmlReportGenerator {
         <div class="toc-section">
             <h2>$title</h2>
             <nav>
-                <ul>
-                    $tocHtml
-                </ul>
+                $tocHtml
             </nav>
         </div>
         """.trimIndent()
@@ -143,9 +157,7 @@ internal class HtmlReportGenerator {
         isSuppressed: Boolean,
     ): String {
         val anchorPrefix = if (isSuppressed) "suppressed" else "fatal"
-        val anchorId = "$anchorPrefix-${
-            groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())
-        }"
+        val anchorId = "$anchorPrefix-${groupName.replace(":", "").replace(" ", "-").lowercase(Locale.getDefault())}"
         val moduleDetailsHtml = modules.joinToString("\n") { moduleReport ->
             generateModuleDetails(moduleReport, isSuppressed)
         }
@@ -158,13 +170,15 @@ internal class HtmlReportGenerator {
     }
 
     private fun generateModuleDetails(moduleReport: ModuleReport, isSuppressed: Boolean): String {
+        val anchorPrefix = if (isSuppressed) "suppressed" else "fatal"
+        val moduleAnchorId = "$anchorPrefix-module-${moduleReport.module.substring(1).replace(":", "-")}"
         val table = if(isSuppressed) {
             generateSuppressedTable(moduleReport.suppressed)
         } else {
             generateFatalTable(moduleReport.fatal)
         }
         return """
-        <details class="module" open>
+        <details class="module" id="$moduleAnchorId" open>
             <summary>
                 <h4>${moduleReport.module}</h4>
                 <div>
@@ -280,22 +294,51 @@ internal class HtmlReportGenerator {
             border-bottom: 1px solid var(--color-border);
             padding-bottom: 0.5rem;
         }
+        .sidebar nav > details {
+            margin-bottom: 0.5rem;
+        }
+        .sidebar nav > details > summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            list-style: none; /* Hide the default disclosure triangle */
+            cursor: pointer;
+        }
+        .sidebar nav > details > summary::-webkit-details-marker {
+            display: none; /* Hide the default disclosure triangle for Chrome/Safari */
+        }
+        .sidebar nav > details > summary:hover {
+            background-color: #f1f3f5;
+            color: var(--color-text-primary);
+        }
+        .sidebar nav > details > summary:hover a {
+            color: var(--color-text-primary);
+        }
         .sidebar ul {
             list-style: none;
             padding: 0;
             margin: 0;
         }
-        .sidebar ul a {
+        .sidebar a {
+            color: var(--color-text-secondary);
+            text-decoration: none;
+        }
+        .sidebar details > ul {
+            padding-left: 1rem;
+            margin-top: 0.5rem;
+        }
+        .sidebar details > ul a {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0.5rem 1rem;
-            color: var(--color-text-secondary);
-            text-decoration: none;
+            padding: 0.25rem 1rem;
+            font-weight: 400;
             border-radius: 6px;
-            font-weight: 500;
         }
-        .sidebar ul a:hover {
+        .sidebar details > ul a:hover {
             background-color: #f1f3f5;
             color: var(--color-text-primary);
         }
@@ -345,7 +388,7 @@ internal class HtmlReportGenerator {
             margin-bottom: 1.5rem;
             overflow: hidden;
         }
-        summary {
+        .module > summary {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -364,6 +407,16 @@ internal class HtmlReportGenerator {
         }
         .badge.fatal { background-color: var(--color-fatal); }
         .badge.suppressed { background-color: var(--color-suppressed); }
+        .badge.fatal-light {
+            background-color: #fce8e6;
+            color: var(--color-fatal);
+            border: 1px solid var(--color-fatal);
+        }
+        .badge.suppressed-light {
+            background-color: #e8eaed;
+            color: var(--color-text-primary);
+            border: 1px solid var(--color-suppressed);
+        }
         .table-container { padding: 0 1.5rem 1rem; }
         table {
             width: 100%;
