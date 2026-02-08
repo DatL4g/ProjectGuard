@@ -1,10 +1,8 @@
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.TaskDependencies
+import com.rubensousa.dependencyguard.plugin.internal.DependencyGraphBuilder
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
 
 class DependencyGuardPlugin : Plugin<Project> {
 
@@ -15,25 +13,45 @@ class DependencyGuardPlugin : Plugin<Project> {
                 "dependencyGuard",
                 DependencyGuardExtension::class.java
             )
+        val graphBuilder = DependencyGraphBuilder()
+        val dependencyDumpTask = target.tasks.register(
+            "dependencyGuardDependencyDump",
+            DependencyGuardDependencyDumpTask::class.java
+        ) {
+            group = "reporting"
+            description = "Generates a JSON containing the dependencies of this module."
+            projectPath.set(project.path)
+            dependencies.set(graphBuilder.buildFrom(project))
+            dependenciesFile.set(
+                project.layout.buildDirectory.file("reports/dependencyGuard/dependencies.json")
+            )
+        }
 
-        // Register the check task for the current project
-        target.tasks.register("dependencyGuardCheck", DependencyGuardCheckTask::class.java) {
+        val checkTask = target.tasks.register(
+            "dependencyGuardCheck",
+            DependencyGuardCheckTask::class.java
+        ) {
             group = "verification"
             description = "Checks for unauthorized cross-module dependencies."
             projectPath.set(target.path)
             specProperty.set(extension.getSpec())
-            dependencies.set(getDependencies(target))
+            dependencies.set(graphBuilder.buildFrom(target))
         }
 
         // Apply the reporting plugin logic only once on the root project
         if (target == rootProject) {
-            applyReportPlugin(rootProject, extension)
+            applyReportPlugin(
+                rootProject = rootProject,
+                extension = extension,
+                graphBuilder = graphBuilder
+            )
         }
     }
 
     private fun applyReportPlugin(
         rootProject: Project,
         extension: DependencyGuardExtension,
+        graphBuilder: DependencyGraphBuilder,
     ) {
         val jsonTask = rootProject.tasks.register(
             "dependencyGuardJsonReport",
@@ -76,7 +94,7 @@ class DependencyGuardPlugin : Plugin<Project> {
                 description = "Generates a JSON report of all dependency violations."
                 projectPath.set(project.path)
                 specProperty.set(extension.getSpec())
-                dependencies.set(getDependencies(project))
+                dependencies.set(graphBuilder.buildFrom(project))
                 reportFile.set(
                     project.layout.buildDirectory.file("reports/dependencyGuard/report.json")
                 )
@@ -85,20 +103,6 @@ class DependencyGuardPlugin : Plugin<Project> {
             jsonTask.configure {
                 reportFiles.from(moduleReportTask.flatMap { it.reportFile })
             }
-        }
-    }
-
-    private fun getDependencies(project: Project): List<TaskDependencies> {
-        return project.configurations.map { config ->
-            TaskDependencies(
-                name = config.name,
-                projectPaths = config.dependencies
-                    .withType(ProjectDependency::class.java)
-                    .map { it.path },
-                externalLibraries = config.dependencies
-                    .withType(ExternalModuleDependency::class.java)
-                    .map { "${it.group}:${it.name}" }
-            )
         }
     }
 }

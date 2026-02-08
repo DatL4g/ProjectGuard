@@ -1,10 +1,10 @@
 package com.rubensousa.dependencyguard.plugin
 
+import com.rubensousa.dependencyguard.plugin.internal.DependencyGraph
 import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardSpec
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatchProcessor
-import com.rubensousa.dependencyguard.plugin.internal.TaskDependencies
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
@@ -26,7 +26,7 @@ abstract class DependencyGuardModuleReportTask : DefaultTask() {
     internal abstract val specProperty: Property<DependencyGuardSpec>
 
     @get:Input
-    internal abstract val dependencies: ListProperty<TaskDependencies>
+    internal abstract val dependencies: ListProperty<DependencyGraph>
 
     @get:OutputFile
     internal abstract val reportFile: RegularFileProperty
@@ -42,25 +42,14 @@ abstract class DependencyGuardModuleReportTask : DefaultTask() {
         val matches = mutableListOf<RestrictionMatch>()
         val restrictionChecker = RestrictionChecker()
         val processor = RestrictionMatchProcessor()
-        dependencies.get().forEach { config ->
-            config.projectPaths.forEach { dependencyPath ->
-                matches.addAll(
-                    restrictionChecker.findMatches(
-                        modulePath = currentModulePath,
-                        dependencyPath = dependencyPath,
-                        spec = spec,
-                    )
+        dependencies.get().forEach { graph ->
+            matches.addAll(
+                restrictionChecker.findRestrictions(
+                    modulePath = currentModulePath,
+                    dependencyGraph = graph,
+                    spec = spec
                 )
-            }
-            config.externalLibraries.forEach { library ->
-                matches.addAll(
-                    restrictionChecker.findMatches(
-                        modulePath = currentModulePath,
-                        dependencyPath = library,
-                        spec = spec,
-                    )
-                )
-            }
+            )
         }
         val processedMatches = processor.process(matches)
         if (processedMatches.isNotEmpty()) {

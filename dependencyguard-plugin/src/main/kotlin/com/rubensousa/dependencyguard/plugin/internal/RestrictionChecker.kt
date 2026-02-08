@@ -5,12 +5,20 @@ internal class RestrictionChecker {
     private val unspecifiedReason = "Unspecified"
 
     fun findRestrictions(
-        moduleId: String,
+        modulePath: String,
         dependencyGraph: DependencyGraph,
         spec: DependencyGuardSpec,
     ): List<RestrictionMatch> {
         val matches = mutableListOf<RestrictionMatch>()
-
+        dependencyGraph.getAllDependencies(modulePath).forEach { dependency ->
+            matches.addAll(
+                findMatches(
+                    modulePath = modulePath,
+                    dependencyPath = dependency,
+                    spec = spec
+                )
+            )
+        }
         return matches
     }
 
