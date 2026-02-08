@@ -4,7 +4,8 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
     alias(libs.plugins.maven.publish) apply false
-    id(libs.plugins.dependencyguard.get().pluginId) apply true
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.dependencyguard) apply true
 }
 val dependencyGuardPlugin = libs.plugins.dependencyguard.get().pluginId
 
