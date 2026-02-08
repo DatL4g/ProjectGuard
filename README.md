@@ -40,6 +40,22 @@ dependencyGuard {
 }
 ```
 
+Or for groovy files `build.gradle`:
+
+```groovy
+plugins {
+    alias libs.plugins.dependencyguard apply true
+}
+
+subprojects {
+    plugins.apply(libs.plugins.dependencyguard.get().getPluginId())
+}
+
+dependencyGuard {
+    // Global configuration. See below for examples
+}
+```
+
 ## Features
 
 1. Define dependencies that can't be used for some modules
@@ -74,9 +90,21 @@ dependencyGuard {
 }
 ```
 
-3. Run `./gradlew dependencyGuardCheck` to validate the project using the rules you configured
+3. Suppress rules temporarily until you migrate
 
-4. Run `./gradlew dependencyGuardHtmlReport` task to generate a HTML report with the violations affected by this project, including the ones that are ignored
+```kotlin
+dependencyGuard {
+    restrictDependency(":legacy:a") {
+        suppress(":domain:a") {
+            setReason("Domain A still depends on legacy")
+        }
+    }
+}
+```
+
+4. Run `./gradlew dependencyGuardCheck` to validate the project using the rules you configured
+
+5. Run `./gradlew dependencyGuardHtmlReport` task to generate a HTML report with the violations affected by this project, including the ones that are ignored
 
 
 ## License
