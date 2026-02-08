@@ -1,6 +1,8 @@
 package com.rubensousa.dependencyguard.plugin
 
 import com.rubensousa.dependencyguard.plugin.internal.DependencyGraph
+import com.rubensousa.dependencyguard.plugin.internal.DependencyGraphAggregateReport
+import com.rubensousa.dependencyguard.plugin.internal.DependencyGraphBuilder
 import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardSpec
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
@@ -12,6 +14,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
@@ -25,8 +28,8 @@ abstract class DependencyGuardModuleReportTask : DefaultTask() {
     @get:Input
     internal abstract val specProperty: Property<DependencyGuardSpec>
 
-    @get:Input
-    internal abstract val dependencies: ListProperty<DependencyGraph>
+    @get:InputFile
+    internal abstract val dependencyFile: RegularFileProperty
 
     @get:OutputFile
     internal abstract val reportFile: RegularFileProperty
@@ -39,10 +42,15 @@ abstract class DependencyGuardModuleReportTask : DefaultTask() {
             return
         }
         val currentModulePath = projectPath.get()
+        val aggregateReport = Json.decodeFromString<DependencyGraphAggregateReport>(
+            dependencyFile.get().asFile.readText()
+        )
+        val graphBuilder = DependencyGraphBuilder()
+        val graphs = graphBuilder.buildFromReport(aggregateReport)
         val matches = mutableListOf<RestrictionMatch>()
         val restrictionChecker = RestrictionChecker()
         val processor = RestrictionMatchProcessor()
-        dependencies.get().forEach { graph ->
+        graphs.forEach { graph ->
             matches.addAll(
                 restrictionChecker.findRestrictions(
                     modulePath = currentModulePath,

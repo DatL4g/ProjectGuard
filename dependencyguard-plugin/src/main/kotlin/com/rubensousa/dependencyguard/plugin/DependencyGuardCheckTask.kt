@@ -1,15 +1,18 @@
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.DependencyGraph
+import com.rubensousa.dependencyguard.plugin.internal.DependencyGraphAggregateReport
+import com.rubensousa.dependencyguard.plugin.internal.DependencyGraphBuilder
 import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardSpec
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatchProcessor
+import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
-import org.gradle.api.provider.ListProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 
 abstract class DependencyGuardCheckTask : DefaultTask() {
@@ -20,8 +23,8 @@ abstract class DependencyGuardCheckTask : DefaultTask() {
     @get:Input
     internal abstract val specProperty: Property<DependencyGuardSpec>
 
-    @get:Input
-    internal abstract val dependencies: ListProperty<DependencyGraph>
+    @get:InputFile
+    internal abstract val dependencyFile: RegularFileProperty
 
     @TaskAction
     fun dependencyGuardCheck() {
@@ -29,10 +32,15 @@ abstract class DependencyGuardCheckTask : DefaultTask() {
         if (spec.isEmpty()) {
             return
         }
+        val aggregateReport = Json.decodeFromString<DependencyGraphAggregateReport>(
+            dependencyFile.get().asFile.readText()
+        )
+        val graphBuilder = DependencyGraphBuilder()
+        val graphs = graphBuilder.buildFromReport(aggregateReport)
         val currentModulePath = projectPath.get()
         val matches = mutableListOf<RestrictionMatch>()
         val restrictionChecker = RestrictionChecker()
-        dependencies.get().forEach { graph ->
+        graphs.forEach { graph ->
             matches.addAll(
                 restrictionChecker.findRestrictions(
                     modulePath = currentModulePath,

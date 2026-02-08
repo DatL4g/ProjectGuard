@@ -17,28 +17,46 @@ internal class DependencyGraphBuilder {
         "AndroidTestCompileClasspath" // Tests would include
     )
 
+    fun buildFromReport(report: DependencyGraphAggregateReport): List<DependencyGraph> {
+        val graphs = mutableMapOf<String, DependencyGraph>()
+        report.moduleReports.forEach { report ->
+            report.configurations.forEach { configuration ->
+                if (isConfigurationSupported(configuration.id)) {
+                    val graph = graphs.getOrPut(configuration.id) {
+                        DependencyGraph(configurationId = configuration.id)
+                    }
+                    configuration.dependencies.forEach { dependency ->
+                        graph.addDependency(report.module, dependency)
+                    }
+                }
+
+            }
+        }
+        return graphs.values.toList()
+    }
+
     fun buildFrom(project: Project): List<DependencyGraph> {
         return project.configurations
-            .filter { config -> isConfigurationSupported(config) }
+            .filter { config -> config.isCanBeResolved && isConfigurationSupported(config.name) }
             .map { config ->
                 val graph = DependencyGraph(
                     configurationId = config.name,
                 )
                 val moduleId = project.path
-                /**
-                 * Until https://github.com/rubensousa/DependencyGuard/issues/3 is resolved,
-                 * exclude transitive dependency traversals for test configurations
-                 */
                 config.incoming.dependencies
                     .forEach { dependency ->
-                        when(dependency) {
+                        when (dependency) {
                             is ProjectDependency -> {
                                 if (dependency.path != moduleId) {
                                     graph.addDependency(moduleId, dependency.path)
                                 }
                             }
+
                             is ExternalModuleDependency -> {
-                                graph.addDependency(moduleId, "${dependency.group}:${dependency.name}")
+                                graph.addDependency(
+                                    moduleId,
+                                    "${dependency.group}:${dependency.name}"
+                                )
                             }
                         }
                     }
@@ -47,16 +65,12 @@ internal class DependencyGraphBuilder {
             .filter { graph -> graph.nodes.isNotEmpty() }
     }
 
-    private fun isConfigurationSupported(configuration: Configuration): Boolean {
-        if (!configuration.isCanBeResolved) {
-            return false
-        }
-        val name = configuration.name
-        if (supportedConfigurations.contains(name)) {
+    private fun isConfigurationSupported(configurationId: String): Boolean {
+        if (supportedConfigurations.contains(configurationId)) {
             return true
         }
         return androidConfigurationPatterns.any { pattern ->
-            name.contains(pattern)
+            configurationId.contains(pattern)
         }
     }
 

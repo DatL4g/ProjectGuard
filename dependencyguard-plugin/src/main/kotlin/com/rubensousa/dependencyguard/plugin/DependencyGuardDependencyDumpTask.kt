@@ -41,7 +41,9 @@ abstract class DependencyGuardDependencyDumpTask : DefaultTask() {
                 )
             }
         )
-        jsonWriter.writeToFile(graphReport, file)
+        if (graphReport.configurations.isNotEmpty()) {
+            jsonWriter.writeToFile(graphReport, file)
+        }
     }
 
 }

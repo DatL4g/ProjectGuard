@@ -9,6 +9,11 @@ internal data class DependencyGraphReport(
 )
 
 @Serializable
+internal data class DependencyGraphAggregateReport(
+    val moduleReports: List<DependencyGraphReport>
+)
+
+@Serializable
 internal data class DependencyGraphConfiguration(
     val id: String,
     val dependencies: List<String>,

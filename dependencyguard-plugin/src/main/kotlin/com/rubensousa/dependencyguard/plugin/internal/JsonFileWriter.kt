@@ -11,8 +11,19 @@ internal class JsonFileWriter {
         prettyPrintIndent = "  "
     }
 
-    fun writeToFile(content: Any, file: File) {
-        file.mkdirs()
+    // See: https://github.com/gradle/gradle/issues/25412
+    fun writeToFile(content: DependencyGuardReport, file: File) {
+        file.parentFile.mkdirs()
+        file.writeText(json.encodeToString(content))
+    }
+
+    fun writeToFile(content: DependencyGraphAggregateReport, file: File) {
+        file.parentFile.mkdirs()
+        file.writeText(json.encodeToString(content))
+    }
+
+    fun writeToFile(content: DependencyGraphReport, file: File) {
+        file.parentFile.mkdirs()
         file.writeText(json.encodeToString(content))
     }
 

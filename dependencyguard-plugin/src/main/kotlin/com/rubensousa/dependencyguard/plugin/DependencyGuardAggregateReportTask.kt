@@ -1,11 +1,11 @@
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardReport
 import com.rubensousa.dependencyguard.plugin.internal.FatalMatch
+import com.rubensousa.dependencyguard.plugin.internal.JsonFileWriter
 import com.rubensousa.dependencyguard.plugin.internal.ModuleReport
+import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 import com.rubensousa.dependencyguard.plugin.internal.SuppressedMatch
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
@@ -24,10 +24,7 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
     @get:OutputFile
     abstract val reportLocation: RegularFileProperty
 
-    private val json = Json {
-        prettyPrint = true
-        prettyPrintIndent = "  "
-    }
+    private val jsonWriter = JsonFileWriter()
 
     @TaskAction
     fun generateReport() {
@@ -59,11 +56,7 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
                     )
                 }.sortedBy { it.module }
         )
-        val jsonReport = json.encodeToString(report)
-        reportLocation.get().asFile.apply {
-            parentFile.mkdirs()
-            writeText(jsonReport)
-        }
+        jsonWriter.writeToFile(report, reportLocation.get().asFile)
     }
 
 }
