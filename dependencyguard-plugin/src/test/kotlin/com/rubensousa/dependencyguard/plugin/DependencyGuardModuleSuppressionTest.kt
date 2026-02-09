@@ -13,7 +13,7 @@ class DependencyGuardModuleSuppressionTest {
     fun `module included in suppression should be flagged as suppressed`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 suppress(":other:b")
             }
         }
@@ -40,7 +40,7 @@ class DependencyGuardModuleSuppressionTest {
     fun `module not included in suppressions should be restricted`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":other")
             }
         }
@@ -67,7 +67,7 @@ class DependencyGuardModuleSuppressionTest {
     fun `child module of suppressed module should be flagged as suppressed`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 suppress(":other:a") {
                     setReason("Suppression reason")
                 }
@@ -97,7 +97,7 @@ class DependencyGuardModuleSuppressionTest {
     fun `multiple suppressions are respected`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 suppress(":other:b")
                 suppress(":other:c")
             }

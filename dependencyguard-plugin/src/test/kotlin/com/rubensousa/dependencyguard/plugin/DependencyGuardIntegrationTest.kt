@@ -52,7 +52,7 @@ class DependencyGuardIntegrationTest {
         rootBuildFile.appendText(
             """
             dependencyGuard {
-                restrictModule(":consumer") {
+                guard(":consumer") {
                     deny(":libraryB")
                 }
             }

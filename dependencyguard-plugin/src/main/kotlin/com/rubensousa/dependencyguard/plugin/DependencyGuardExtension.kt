@@ -20,7 +20,7 @@ abstract class DependencyGuardExtension @Inject constructor(
     private val moduleRestrictions = objects.listProperty<ModuleRestriction>()
     private val dependencyRestrictions = objects.listProperty<DependencyRestriction>()
 
-    override fun restrictModule(modulePath: String, action: Action<ModuleRestrictionScope>) {
+    override fun guard(modulePath: String, action: Action<ModuleRestrictionScope>) {
         val scope = ModuleRestrictionScopeImpl()
         action.execute(scope)
         moduleRestrictions.add(

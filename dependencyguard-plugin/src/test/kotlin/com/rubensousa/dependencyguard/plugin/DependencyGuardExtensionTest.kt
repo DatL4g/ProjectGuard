@@ -17,7 +17,7 @@ class DependencyGuardExtensionTest {
         )
 
         // when
-        extension.restrictModule(":app") {
+        extension.guard(":app") {
             deny(":legacy")
         }
 

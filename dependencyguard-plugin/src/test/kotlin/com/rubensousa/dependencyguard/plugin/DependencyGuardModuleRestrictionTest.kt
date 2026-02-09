@@ -13,7 +13,7 @@ class DependencyGuardModuleRestrictionTest {
     fun `module is restricted to concrete child but not its parent`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":other:a")
             }
         }
@@ -42,7 +42,7 @@ class DependencyGuardModuleRestrictionTest {
     fun `child module is restricted because its parent is also restricted`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":other")
             }
         }
@@ -70,7 +70,7 @@ class DependencyGuardModuleRestrictionTest {
     fun `there is no restriction if input module is not the restricted one`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":legacy")
             }
         }
@@ -94,7 +94,7 @@ class DependencyGuardModuleRestrictionTest {
     fun `there is a restriction for a direct match`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":legacy")
             }
         }
@@ -123,7 +123,7 @@ class DependencyGuardModuleRestrictionTest {
     fun `there is a restriction for a match of a child`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":legacy")
             }
         }
@@ -170,10 +170,10 @@ class DependencyGuardModuleRestrictionTest {
     fun `multiple restrictions are found`() {
         // given
         val spec = dependencyGuard {
-            restrictModule(":domain") {
+            guard(":domain") {
                 deny(":legacy")
             }
-            restrictModule(":domain:a") {
+            guard(":domain:a") {
                 deny(":deprecated")
             }
         }

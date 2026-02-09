@@ -12,13 +12,13 @@ interface DependencyGuardScope {
      * Example:
      *
      * ```
-     * restrictModule(":domain") {
+     * guard(":domain") {
      *      // Domain modules should not depend on UI modules
      *      deny(":ui")
      * }
      * ```
      */
-    fun restrictModule(
+    fun guard(
         modulePath: String,
         action: Action<ModuleRestrictionScope>,
     )
