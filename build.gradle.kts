@@ -16,7 +16,7 @@ subprojects {
 }
 
 dependencyGuard {
-    restrictModule(":domain") {
+    guard(":domain") {
         deny(":feature") {
             setReason("Dependency should be inverted. Feature depends on domain")
         }
@@ -24,7 +24,7 @@ dependencyGuard {
             setReason("Dependency should be inverted. Data depends on domain")
         }
     }
-    restrictModule(":feature") {
+    guard(":feature") {
         deny(":feature") {
             setReason("Features should not depend on other features directly")
         }

@@ -67,7 +67,7 @@ dependencyGuard {
      * This matches all modules within the domain directory.
      * E.g (":domain:a", ":domain:b", ":domain:c")
      */
-    restrictModule(":domain") {
+    guard(":domain") {
         /**
          * This matches all modules within the legacy directory.
          * E.g (":legacy:a", ":legacy:b", ":legacy:c")
