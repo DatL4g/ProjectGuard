@@ -87,9 +87,7 @@ class DependencyGuardPlugin : Plugin<Project> {
             // Check task must take the aggregate dependencies as input
             checkTask.configure {
                 dependencyFile.set(dependencyAggregateTask.flatMap { it.output })
-                finalizedBy(htmlTask.get())
             }
-
 
             val moduleReportTask = project.tasks.register(
                 "dependencyGuardModuleReport",
