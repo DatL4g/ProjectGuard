@@ -19,20 +19,23 @@ package com.rubensousa.dependencyguard.plugin
 import com.google.common.truth.Truth.assertThat
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
+import com.rubensousa.dependencyguard.plugin.internal.SuppressionMap
 import kotlin.test.Test
 
 class DependencyGuardModuleSuppressionTest {
 
-    private val restrictionChecker = RestrictionChecker()
+    private val suppressionMap = SuppressionMap()
+    private val restrictionChecker = RestrictionChecker(suppressionMap)
 
     @Test
     fun `module included in suppression should be flagged as suppressed`() {
         // given
         val spec = dependencyGuard {
             guard(":domain") {
-                suppress(":other:b")
+                deny(":other:b")
             }
         }
+        suppressionMap.add(":domain", ":other:b")
         val graph = buildDependencyGraph {
             addDependency(":domain", ":other:b")
         }
@@ -84,11 +87,10 @@ class DependencyGuardModuleSuppressionTest {
         // given
         val spec = dependencyGuard {
             guard(":domain") {
-                suppress(":other:a") {
-                    setReason("Suppression reason")
-                }
+                deny(":other:a")
             }
         }
+        suppressionMap.add(":domain", ":other:a:c", "Suppression reason")
         val graph = buildDependencyGraph {
             addDependency(":domain", ":other:a:c")
         }
@@ -114,10 +116,12 @@ class DependencyGuardModuleSuppressionTest {
         // given
         val spec = dependencyGuard {
             guard(":domain") {
-                suppress(":other:b")
-                suppress(":other:c")
+                deny(":other:b")
+                deny(":other:c")
             }
         }
+        suppressionMap.add(":domain", ":other:b")
+        suppressionMap.add(":domain", ":other:c")
         val graph = buildDependencyGraph {
             addDependency(":domain", ":other:b")
             addDependency(":domain", ":other:c")

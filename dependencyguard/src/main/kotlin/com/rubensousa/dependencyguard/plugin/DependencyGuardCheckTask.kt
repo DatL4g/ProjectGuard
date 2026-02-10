@@ -22,6 +22,7 @@ import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardSpec
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatchProcessor
+import com.rubensousa.dependencyguard.plugin.internal.SuppressionMap
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -55,7 +56,8 @@ abstract class DependencyGuardCheckTask : DefaultTask() {
         val graphs = graphBuilder.buildFromReport(aggregateReport)
         val currentModulePath = projectPath.get()
         val matches = mutableListOf<RestrictionMatch>()
-        val restrictionChecker = RestrictionChecker()
+        val suppressionMap = SuppressionMap()
+        val restrictionChecker = RestrictionChecker(suppressionMap)
         graphs.forEach { graph ->
             matches.addAll(
                 restrictionChecker.findMatches(

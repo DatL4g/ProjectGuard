@@ -19,20 +19,21 @@ package com.rubensousa.dependencyguard.plugin
 import com.google.common.truth.Truth.assertThat
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
+import com.rubensousa.dependencyguard.plugin.internal.SuppressionMap
 import kotlin.test.Test
 
 class DependencyGuardDependencySuppressionTest {
 
-    private val restrictionChecker = RestrictionChecker()
+    private val suppressionMap = SuppressionMap()
+    private val restrictionChecker = RestrictionChecker(suppressionMap)
 
     @Test
-    fun `module included in exclusions should be flagged as suppressed`() {
+    fun `module included in suppressions should be flagged as suppressed`() {
         // given
         val spec = dependencyGuard {
-            restrictDependency(":other") {
-                suppress(":domain")
-            }
+            restrictDependency(":other")
         }
+        suppressionMap.add(":domain", ":other:b")
         val graph = buildDependencyGraph {
             addDependency(":domain", ":other:b")
         }
@@ -53,13 +54,12 @@ class DependencyGuardDependencySuppressionTest {
     }
 
     @Test
-    fun `module not included in exclusions should be restricted`() {
+    fun `module not included in suppressions should be restricted`() {
         // given
         val spec = dependencyGuard {
-            restrictDependency(":other") {
-                suppress(":other:b")
-            }
+            restrictDependency(":other")
         }
+        suppressionMap.add(":domain", ":other:b")
         val graph = buildDependencyGraph {
             addDependency(":domain", ":other:a")
         }
@@ -83,10 +83,9 @@ class DependencyGuardDependencySuppressionTest {
     fun `child module of suppressed module should be flagged as suppressed`() {
         // given
         val spec = dependencyGuard {
-            restrictDependency(":other") {
-                suppress(":domain:a")
-            }
+            restrictDependency(":other")
         }
+        suppressionMap.add(":domain:a:c", ":other")
         val graph = buildDependencyGraph {
             addDependency(":domain:a:c", ":other")
         }

@@ -19,11 +19,13 @@ package com.rubensousa.dependencyguard.plugin
 import com.google.common.truth.Truth.assertThat
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
+import com.rubensousa.dependencyguard.plugin.internal.SuppressionMap
 import kotlin.test.Test
 
 class DependencyGuardModuleRestrictionTest {
 
-    private val restrictionChecker = RestrictionChecker()
+    private val suppressionMap = SuppressionMap()
+    private val restrictionChecker = RestrictionChecker(suppressionMap)
 
     @Test
     fun `module is restricted to concrete child but not its parent`() {

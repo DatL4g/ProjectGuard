@@ -19,11 +19,13 @@ package com.rubensousa.dependencyguard.plugin
 import com.google.common.truth.Truth.assertThat
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionChecker
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
+import com.rubensousa.dependencyguard.plugin.internal.SuppressionMap
 import kotlin.test.Test
 
 class DependencyGuardDependencyRestrictionTest {
 
-    private val restrictionChecker = RestrictionChecker()
+    private val suppressionMap = SuppressionMap()
+    private val restrictionChecker = RestrictionChecker(suppressionMap)
 
     @Test
     fun `there is a restriction for a direct match`() {
