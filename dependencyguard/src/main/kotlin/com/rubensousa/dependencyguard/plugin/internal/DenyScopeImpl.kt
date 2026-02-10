@@ -22,7 +22,7 @@ internal class DenyScopeImpl : DenyScope {
 
     internal var denyReason: String = "Unspecified"
 
-    override fun setReason(reason: String) {
+    override fun reason(reason: String) {
         denyReason = reason
     }
 }

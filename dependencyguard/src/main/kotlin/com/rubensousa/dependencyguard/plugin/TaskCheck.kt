@@ -37,7 +37,7 @@ import org.gradle.work.DisableCachingByDefault
 import java.io.File
 
 @DisableCachingByDefault(because = "Suppression file might have changed")
-abstract class DependencyGuardCheckTask : DefaultTask() {
+abstract class TaskCheck : DefaultTask() {
 
     @get:Input
     internal abstract val projectPath: Property<String>

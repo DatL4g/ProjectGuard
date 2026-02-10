@@ -27,7 +27,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "HTML report should always be regenerated")
-abstract class DependencyGuardHtmlReportTask : DefaultTask() {
+abstract class TaskReportHtml : DefaultTask() {
 
     @get:InputFile
     abstract val jsonReport: RegularFileProperty
@@ -36,12 +36,8 @@ abstract class DependencyGuardHtmlReportTask : DefaultTask() {
     abstract val htmlReport: RegularFileProperty
 
     @TaskAction
-    fun generateReport() {
+    fun dependencyGuardHtmlReport() {
         val htmlGenerator = HtmlReportGenerator()
-        if (!jsonReport.get().asFile.exists()) {
-            htmlReport.get().asFile.writeText(htmlGenerator.generate(DependencyGuardReport(emptyList())))
-            return
-        }
         val report = Json.decodeFromString<DependencyGuardReport>(jsonReport.get().asFile.readText())
         val html = htmlGenerator.generate(report)
         htmlReport.get().asFile.writeText(html)

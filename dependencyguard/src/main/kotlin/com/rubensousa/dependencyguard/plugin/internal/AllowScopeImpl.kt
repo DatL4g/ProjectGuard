@@ -22,7 +22,7 @@ internal class AllowScopeImpl : AllowScope {
 
     private var allowReason: String = "Unspecified"
 
-    override fun setReason(reason: String) {
+    override fun reason(reason: String) {
         allowReason = reason
     }
 

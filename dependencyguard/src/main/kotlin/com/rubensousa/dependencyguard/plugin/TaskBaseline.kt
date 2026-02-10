@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault
-abstract class DependencyGuardBaselineTask : DefaultTask() {
+abstract class TaskBaseline : DefaultTask() {
 
     @get:InputFile
     internal abstract val jsonReport: RegularFileProperty
@@ -37,7 +37,7 @@ abstract class DependencyGuardBaselineTask : DefaultTask() {
     internal abstract val suppressionsReference: RegularFileProperty
 
     @TaskAction
-    fun dependencyGuardSuppress() {
+    fun dependencyGuardBaseline() {
         val jsonReportFile = jsonReport.get().asFile
         if (!jsonReportFile.exists()) {
             return

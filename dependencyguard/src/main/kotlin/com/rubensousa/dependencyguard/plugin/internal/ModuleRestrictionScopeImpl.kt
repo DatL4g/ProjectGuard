@@ -18,7 +18,6 @@ package com.rubensousa.dependencyguard.plugin.internal
 
 import com.rubensousa.dependencyguard.plugin.DenyScope
 import com.rubensousa.dependencyguard.plugin.ModuleRestrictionScope
-import com.rubensousa.dependencyguard.plugin.SuppressScope
 import org.gradle.api.Action
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.provider.Provider

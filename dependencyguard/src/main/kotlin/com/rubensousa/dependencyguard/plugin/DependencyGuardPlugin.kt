@@ -52,8 +52,8 @@ class DependencyGuardPlugin : Plugin<Project> {
         graphBuilder: DependencyGraphBuilder,
     ) {
         val jsonTask = rootProject.tasks.register(
-            "dependencyGuardJsonReport",
-            DependencyGuardAggregateReportTask::class.java
+            "dependencyGuardAggregateReport",
+            TaskAggregateReport::class.java
         ) {
             group = "reporting"
             description = "Generates an aggregate JSON report of all dependency matches."
@@ -63,8 +63,8 @@ class DependencyGuardPlugin : Plugin<Project> {
         }
 
         val dependencyAggregateTask = rootProject.tasks.register(
-            "dependencyGuardDependencyReport",
-            DependencyGuardDependencyReportTask::class.java
+            "dependencyGuardAggregateDependencyDump",
+            TaskAggregateDependencyDump::class.java
         ) {
             group = "reporting"
             description = "Generates an aggregate JSON report of all dependencies of this project."
@@ -75,7 +75,7 @@ class DependencyGuardPlugin : Plugin<Project> {
 
         val htmlTask = rootProject.tasks.register(
             "dependencyGuardHtmlReport",
-            DependencyGuardHtmlReportTask::class.java
+            TaskReportHtml::class.java
         ) {
             group = "reporting"
             description = "Generates an HTML report of all dependency matches."
@@ -89,7 +89,7 @@ class DependencyGuardPlugin : Plugin<Project> {
 
         val suppressTask = rootProject.tasks.register(
             "dependencyGuardBaseline",
-            DependencyGuardBaselineTask::class.java
+            TaskBaseline::class.java
         ) {
             group = "verification"
             description = "Generates a YAML file containing the baseline of suppressions for this project."
@@ -112,7 +112,7 @@ class DependencyGuardPlugin : Plugin<Project> {
         rootProject.subprojects.forEach { project ->
             val checkTask = project.tasks.register(
                 "dependencyGuardCheck",
-                DependencyGuardCheckTask::class.java
+                TaskCheck::class.java
             ) {
                 group = "verification"
                 description = "Verifies if there are any dependency restrictions being violated"
@@ -128,7 +128,7 @@ class DependencyGuardPlugin : Plugin<Project> {
 
             val moduleReportTask = project.tasks.register(
                 "dependencyGuardModuleReport",
-                DependencyGuardModuleReportTask::class.java
+                TaskReport::class.java
             ) {
                 group = "reporting"
                 description = "Generates a JSON report of all dependency restrictions for this module."
@@ -148,7 +148,7 @@ class DependencyGuardPlugin : Plugin<Project> {
 
             val dependencyDumpTask = project.tasks.register(
                 "dependencyGuardDependencyDump",
-                DependencyGuardDependencyDumpTask::class.java
+                TaskDependencyDump::class.java
             ) {
                 group = "reporting"
                 description = "Generates a JSON containing the dependencies of this module."

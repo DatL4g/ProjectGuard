@@ -18,7 +18,6 @@ package com.rubensousa.dependencyguard.plugin.internal
 
 import com.rubensousa.dependencyguard.plugin.AllowScope
 import com.rubensousa.dependencyguard.plugin.DependencyRestrictionScope
-import com.rubensousa.dependencyguard.plugin.SuppressScope
 import org.gradle.api.Action
 
 internal class DependencyRestrictionScopeImpl : DependencyRestrictionScope {

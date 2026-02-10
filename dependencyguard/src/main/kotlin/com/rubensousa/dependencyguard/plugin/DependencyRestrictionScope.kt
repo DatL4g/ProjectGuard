@@ -17,9 +17,6 @@
 package com.rubensousa.dependencyguard.plugin
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
-import org.gradle.api.provider.Provider
-
 
 internal val defaultAllowScope = Action<AllowScope> { }
 
