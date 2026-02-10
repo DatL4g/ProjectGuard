@@ -33,7 +33,10 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.work.DisableCachingByDefault
+import java.io.File
 
+@DisableCachingByDefault(because = "Suppression file might have changed")
 abstract class DependencyGuardCheckTask : DefaultTask() {
 
     @get:Input
@@ -45,8 +48,8 @@ abstract class DependencyGuardCheckTask : DefaultTask() {
     @get:InputFile
     internal abstract val dependencyFile: RegularFileProperty
 
-    @get:InputFile
-    internal abstract val suppressionFileReference: RegularFileProperty
+    @get:Input
+    internal abstract val baselineFilePath: Property<String>
 
     @TaskAction
     fun dependencyGuardCheck() {
@@ -62,12 +65,12 @@ abstract class DependencyGuardCheckTask : DefaultTask() {
         val currentModulePath = projectPath.get()
         val matches = mutableListOf<RestrictionMatch>()
         val suppressionMap = SuppressionMap()
-        val suppressionFile = suppressionFileReference.asFile.get()
-        if (suppressionFile.exists()) {
+        val baselineFile = File(baselineFilePath.get())
+        if (baselineFile.exists()) {
             val yamlProcessor = YamlProcessor()
             suppressionMap.set(
                 yamlProcessor.parse(
-                    suppressionFile,
+                    baselineFile,
                     SuppressionConfiguration::class.java
                 )
             )

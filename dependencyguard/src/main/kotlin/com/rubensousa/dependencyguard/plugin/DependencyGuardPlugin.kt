@@ -118,7 +118,7 @@ class DependencyGuardPlugin : Plugin<Project> {
                 description = "Verifies if there are any dependency restrictions being violated"
                 projectPath.set(project.path)
                 specProperty.set(extension.getSpec())
-                suppressionFileReference.set(baselineFile)
+                baselineFilePath.set(baselineFile.path)
             }
 
             // Check task must take the aggregate dependencies as input
