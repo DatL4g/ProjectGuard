@@ -27,10 +27,10 @@ class DependencyGuardPlugin : Plugin<Project> {
     private val pluginId = "dependencyguard"
     private val baselineFilePath = "$pluginId.yml"
     private val jsonAggregateReportFilePath = "reports/$pluginId/project-report.json"
-    private val htmlAggregateReportFilePath = "reports/$pluginId/project-report.html"
+    private val htmlAggregateReportFilePath = "reports/$pluginId"
     private val dependenciesFilePath = "reports/$pluginId/dependencies.json"
     private val jsonReportFilePath = "reports/$pluginId/report.json"
-    private val htmlReportFilePath = "reports/$pluginId/report.html"
+    private val htmlReportFilePath = "reports/$pluginId"
     private val graphBuilder = DependencyGraphBuilder()
 
     override fun apply(target: Project) {
@@ -104,6 +104,7 @@ class DependencyGuardPlugin : Plugin<Project> {
         // HTML report task takes the individual module report
         moduleTasks.htmlReport.configure {
             jsonReport.set(moduleTasks.report.flatMap { task -> task.reportFile })
+            mustRunAfter(aggregationTasks.report)
         }
 
         // Check task must take the report as input
@@ -168,7 +169,7 @@ class DependencyGuardPlugin : Plugin<Project> {
             group = "reporting"
             description = "Generates an HTML report of all dependency matches."
             htmlReport.set(
-                rootProject.layout.buildDirectory.file(htmlAggregateReportFilePath)
+                rootProject.layout.buildDirectory.dir(htmlAggregateReportFilePath)
             )
         }
     }
@@ -252,7 +253,7 @@ class DependencyGuardPlugin : Plugin<Project> {
             group = "reporting"
             description = "Generates an HTML report of all dependency matches."
             htmlReport.set(
-                targetProject.layout.buildDirectory.file(htmlReportFilePath)
+                targetProject.layout.buildDirectory.dir(htmlReportFilePath)
             )
         }
     }

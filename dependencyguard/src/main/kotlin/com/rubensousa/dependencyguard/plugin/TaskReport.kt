@@ -70,12 +70,16 @@ abstract class TaskReport : DefaultTask() {
         val baselineFile = File(baselineFilePath.get())
         if (baselineFile.exists()) {
             val yamlProcessor = YamlProcessor()
-            suppressionMap.set(
+            runCatching {
                 yamlProcessor.parse(
                     baselineFile,
                     SuppressionConfiguration::class.java
                 )
-            )
+            }.onSuccess { configuration ->
+                suppressionMap.set(configuration)
+            }.onFailure {
+                logger.warn("Could not read baseline file: ${baselineFile.path}")
+            }
         }
         val restrictionChecker = RestrictionChecker(suppressionMap)
         val processor = RestrictionMatchProcessor()
