@@ -17,15 +17,12 @@
 package com.rubensousa.dependencyguard.plugin
 
 import org.gradle.api.Action
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
-import org.gradle.api.provider.Provider
-
 
 internal val defaultAllowScope = Action<AllowScope> { }
 
 interface DependencyRestrictionScope {
 
-    fun setReason(reason: String)
+    fun reason(reason: String)
 
     // Required for groovy compatibility
     fun allow(

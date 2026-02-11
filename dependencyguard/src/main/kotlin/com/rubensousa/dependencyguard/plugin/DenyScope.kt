@@ -17,7 +17,5 @@
 package com.rubensousa.dependencyguard.plugin
 
 interface DenyScope {
-
-    fun setReason(reason: String)
-
+    fun reason(reason: String)
 }

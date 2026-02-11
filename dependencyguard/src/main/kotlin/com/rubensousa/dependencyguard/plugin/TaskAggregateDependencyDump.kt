@@ -29,7 +29,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault
-abstract class DependencyGuardDependencyReportTask : DefaultTask() {
+abstract class TaskAggregateDependencyDump : DefaultTask() {
 
     @get:InputFiles
     abstract val dependencyFiles: ConfigurableFileCollection
@@ -37,10 +37,8 @@ abstract class DependencyGuardDependencyReportTask : DefaultTask() {
     @get:OutputFile
     abstract val output: RegularFileProperty
 
-    private val jsonWriter = JsonFileWriter()
-
     @TaskAction
-    fun dependencyGuardDependencyDumpAggregate() {
+    fun dependencyGuardAggregateDependencyDump() {
         val reports = mutableListOf<DependencyGraphReport>()
         dependencyFiles.files.forEach { file ->
             if (file.exists()) {
@@ -49,6 +47,7 @@ abstract class DependencyGuardDependencyReportTask : DefaultTask() {
         }
         val aggregateReport = DependencyGraphAggregateReport(reports)
         val outputFile = output.asFile.get()
+        val jsonWriter = JsonFileWriter()
         jsonWriter.writeToFile(aggregateReport, outputFile)
     }
 

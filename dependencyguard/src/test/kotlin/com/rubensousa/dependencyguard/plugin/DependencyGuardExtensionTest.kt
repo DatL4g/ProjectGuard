@@ -57,7 +57,7 @@ class DependencyGuardExtensionTest {
         // when
         extension.restrictDependency(":legacy") {
             allow(":legacy:a") {
-                setReason("Reason A")
+                this.reason("Reason A")
             }
         }
 

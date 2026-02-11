@@ -32,7 +32,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "Final report should always be generated")
-abstract class DependencyGuardAggregateReportTask : DefaultTask() {
+abstract class TaskAggregateReport : DefaultTask() {
 
     @get:InputFiles
     abstract val reportFiles: ConfigurableFileCollection
@@ -40,10 +40,8 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
     @get:OutputFile
     abstract val reportLocation: RegularFileProperty
 
-    private val jsonWriter = JsonFileWriter()
-
     @TaskAction
-    fun generateReport() {
+    fun dependencyGuardAggregateReport() {
         val restrictionMatches = reportFiles.files.flatMap { file ->
             if (file.exists()) {
                 Json.decodeFromString<List<RestrictionMatch>>(file.readText())
@@ -74,6 +72,7 @@ abstract class DependencyGuardAggregateReportTask : DefaultTask() {
                     )
                 }.sortedBy { it.module }
         )
+        val jsonWriter = JsonFileWriter()
         jsonWriter.writeToFile(report, reportLocation.get().asFile)
     }
 

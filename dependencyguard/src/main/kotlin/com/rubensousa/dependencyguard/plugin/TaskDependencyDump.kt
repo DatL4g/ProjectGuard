@@ -30,7 +30,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault
-abstract class DependencyGuardDependencyDumpTask : DefaultTask() {
+abstract class TaskDependencyDump : DefaultTask() {
 
     @get:Input
     internal abstract val projectPath: Property<String>

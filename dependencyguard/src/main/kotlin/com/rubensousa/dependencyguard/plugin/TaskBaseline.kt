@@ -28,27 +28,27 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault
-abstract class DependencyGuardBaselineTask : DefaultTask() {
+abstract class TaskBaseline : DefaultTask() {
 
     @get:InputFile
     internal abstract val jsonReport: RegularFileProperty
 
     @get:OutputFile
-    internal abstract val suppressionsReference: RegularFileProperty
+    internal abstract val baselineFileReference: RegularFileProperty
 
     @TaskAction
-    fun dependencyGuardSuppress() {
+    fun dependencyGuardBaseline() {
         val jsonReportFile = jsonReport.get().asFile
         if (!jsonReportFile.exists()) {
             return
         }
-        val report = Json.decodeFromString<DependencyGuardReport>(
+        val aggregatedReport = Json.decodeFromString<DependencyGuardReport>(
             jsonReportFile.readText()
         )
-        val file = suppressionsReference.asFile.get()
+        val file = baselineFileReference.asFile.get()
         val yamlProcessor = YamlProcessor()
         val suppressionMap = SuppressionMap()
-        report.modules.forEach { report ->
+        aggregatedReport.modules.forEach { report ->
             report.fatal.forEach { fatalMatch ->
                 suppressionMap.add(
                     module = report.module,

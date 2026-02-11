@@ -35,7 +35,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
 @DisableCachingByDefault(because = "Report should always be generated")
-abstract class DependencyGuardModuleReportTask : DefaultTask() {
+abstract class TaskReport : DefaultTask() {
 
     @get:Input
     internal abstract val projectPath: Property<String>
