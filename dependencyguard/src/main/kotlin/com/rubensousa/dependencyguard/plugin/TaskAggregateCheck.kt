@@ -16,8 +16,8 @@
 
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardReport
 import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
+import com.rubensousa.dependencyguard.plugin.internal.report.VerificationReport
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -26,6 +26,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
 
+// TODO: Inject baseline state here
 @DisableCachingByDefault
 abstract class TaskAggregateCheck : DefaultTask() {
 
@@ -34,7 +35,7 @@ abstract class TaskAggregateCheck : DefaultTask() {
 
     @TaskAction
     fun dependencyGuardCheck() {
-        val report = Json.decodeFromString<DependencyGuardReport>(reportFile.get().asFile.readText())
+        val report = Json.decodeFromString<VerificationReport>(reportFile.get().asFile.readText())
         var suppressedMatches = 0
         val fatalMatches = mutableListOf<RestrictionMatch>()
         report.modules.forEach { moduleReport ->

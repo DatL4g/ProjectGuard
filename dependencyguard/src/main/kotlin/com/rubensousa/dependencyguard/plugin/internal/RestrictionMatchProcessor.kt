@@ -16,6 +16,7 @@
 
 package com.rubensousa.dependencyguard.plugin.internal
 
+@Deprecated("Use DependencyRestrictionFinder instead")
 internal class RestrictionMatchProcessor {
 
     fun process(

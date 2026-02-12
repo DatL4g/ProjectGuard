@@ -19,6 +19,7 @@ package com.rubensousa.dependencyguard.plugin.internal
 import kotlinx.serialization.Serializable
 
 @Serializable
+@Deprecated("Use DependencyRestriction instead")
 internal data class RestrictionMatch(
     val module: String,
     val dependency: String,
@@ -32,7 +33,7 @@ internal data class RestrictionMatch(
         return """
                 | Dependency restriction found!
                 | Module -> $module
-                | Match -> $pathToDependency
+                | Match -> ${pathToDependency ?: dependency}
                 | Module '$module' cannot depend on '$dependency'
                 | Reason: $reason
                 """.trimMargin()

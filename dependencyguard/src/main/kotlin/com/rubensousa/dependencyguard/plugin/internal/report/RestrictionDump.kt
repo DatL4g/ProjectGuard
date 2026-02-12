@@ -14,8 +14,24 @@
  * limitations under the License.
  */
 
-package com.rubensousa.dependencyguard.plugin.internal
+package com.rubensousa.dependencyguard.plugin.internal.report
 
-internal data class SuppressionConfiguration(
-    val suppressions: Map<String, List<DependencySuppression>>
+import kotlinx.serialization.Serializable
+
+@Serializable
+internal data class RestrictionDump(
+    val modules: List<RestrictionModuleReport>
+)
+
+@Serializable
+internal data class RestrictionModuleReport(
+    val module: String,
+    val restrictions: List<RestrictionDependencyReport>
+)
+
+@Serializable
+internal data class RestrictionDependencyReport(
+    val dependency: String,
+    val pathToDependency: String?, // Null -> direct dependency
+    val reason: String,
 )

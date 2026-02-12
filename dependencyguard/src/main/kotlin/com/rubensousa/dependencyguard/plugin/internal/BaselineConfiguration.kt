@@ -16,9 +16,6 @@
 
 package com.rubensousa.dependencyguard.plugin.internal
 
-import java.io.Serializable
-
-internal data class DependencySuppression(
-    val dependency: String,
-    val reason: String = UNSPECIFIED_REASON
-): Serializable
+internal data class BaselineConfiguration(
+    val suppressions: Map<String, List<DependencySuppression>>
+)

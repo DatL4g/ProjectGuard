@@ -16,10 +16,7 @@
 
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardReportBuilder
-import com.rubensousa.dependencyguard.plugin.internal.HtmlReportGenerator
-import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
-import kotlinx.serialization.json.Json
+import com.rubensousa.dependencyguard.plugin.internal.report.HtmlReportGenerator
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -27,22 +24,46 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
+import java.io.File
 
 @DisableCachingByDefault(because = "HTML report should always be regenerated")
 abstract class TaskReportHtml : DefaultTask() {
 
     @get:InputFile
-    abstract val jsonReport: RegularFileProperty
+    abstract val restrictionDumpFile: RegularFileProperty
+
+    @get:InputFile
+    abstract val baselineFile: RegularFileProperty
 
     @get:OutputDirectory
-    abstract val htmlReport: DirectoryProperty
+    abstract val outputDir: DirectoryProperty
 
     @TaskAction
     fun dependencyGuardHtmlReport() {
-        val htmlGenerator = HtmlReportGenerator()
-        val matches = Json.decodeFromString<List<RestrictionMatch>>(jsonReport.get().asFile.readText())
-        val report = DependencyGuardReportBuilder().build(matches)
-        htmlGenerator.generate(report, htmlReport.get().asFile)
+        val executor = ReportHtmlExecutor(
+            inputFile = restrictionDumpFile.get().asFile,
+            baselineFile = baselineFile.get().asFile,
+            outputFile = outputDir.get().asFile
+        )
+        executor.execute()
     }
 
+}
+
+internal class ReportHtmlExecutor(
+    private val inputFile: File,
+    private val outputFile: File,
+    private val baselineFile: File,
+) {
+
+    fun execute() {
+        val htmlGenerator = HtmlReportGenerator()
+       /* val dump = Json.decodeFromString<RestrictionDump>(outputFile.readText())
+        val matches = Json.decodeFromString<List<RestrictionMatch>>(jsonReport.get().asFile.readText())
+        val suppressionMap = SuppressionMap()
+        val report = HtmlReportBuilder(
+            suppressionMap
+        ).build(matches)
+        htmlGenerator.generate(report, outputDir.get().asFile)*/
+    }
 }

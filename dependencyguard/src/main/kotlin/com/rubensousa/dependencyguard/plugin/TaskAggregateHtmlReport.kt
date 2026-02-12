@@ -16,8 +16,8 @@
 
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardReport
-import com.rubensousa.dependencyguard.plugin.internal.HtmlReportGenerator
+import com.rubensousa.dependencyguard.plugin.internal.report.HtmlReportGenerator
+import com.rubensousa.dependencyguard.plugin.internal.report.VerificationReport
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
@@ -39,7 +39,7 @@ abstract class TaskAggregateHtmlReport : DefaultTask() {
     @TaskAction
     fun dependencyGuardAggregateHtmlReport() {
         val htmlGenerator = HtmlReportGenerator()
-        val report = Json.decodeFromString<DependencyGuardReport>(jsonReport.get().asFile.readText())
+        val report = Json.decodeFromString<VerificationReport>(jsonReport.get().asFile.readText())
         htmlGenerator.generate(report, htmlReport.get().asFile)
     }
 

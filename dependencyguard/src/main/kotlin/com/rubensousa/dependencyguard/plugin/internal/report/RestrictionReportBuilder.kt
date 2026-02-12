@@ -14,23 +14,14 @@
  * limitations under the License.
  */
 
-package com.rubensousa.dependencyguard.plugin.internal
+package com.rubensousa.dependencyguard.plugin.internal.report
 
-import kotlinx.serialization.Serializable
+import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
 
-@Serializable
-internal data class DependencyGraphReport(
-    val module: String,
-    val configurations: List<DependencyGraphConfiguration>,
-)
+internal class RestrictionReportBuilder {
 
-@Serializable
-internal data class DependencyGraphAggregateReport(
-    val moduleReports: List<DependencyGraphReport>
-)
+    fun build(matches: List<RestrictionMatch>): RestrictionDump {
+        return RestrictionDump(emptyList())
+    }
 
-@Serializable
-internal data class DependencyGraphConfiguration(
-    val id: String,
-    val dependencies: List<String>,
-)
+}

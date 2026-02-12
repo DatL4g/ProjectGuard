@@ -14,11 +14,23 @@
  * limitations under the License.
  */
 
-package com.rubensousa.dependencyguard.plugin.internal
+package com.rubensousa.dependencyguard.plugin.internal.report
 
-import java.io.Serializable
+import kotlinx.serialization.Serializable
 
-internal data class DependencySuppression(
-    val dependency: String,
-    val reason: String = UNSPECIFIED_REASON
-): Serializable
+@Serializable
+internal data class DependencyGraphDump(
+    val modules: List<DependencyGraphModuleDump>
+)
+
+@Serializable
+internal data class DependencyGraphModuleDump(
+    val module: String,
+    val configurations: List<ConfigurationDependencies>,
+)
+
+@Serializable
+internal data class ConfigurationDependencies(
+    val id: String,
+    val dependencies: List<String>,
+)

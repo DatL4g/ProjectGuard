@@ -16,37 +16,69 @@
 
 package com.rubensousa.dependencyguard.plugin
 
-import com.rubensousa.dependencyguard.plugin.internal.RestrictionMatch
+import com.rubensousa.dependencyguard.plugin.internal.BaselineConfiguration
+import com.rubensousa.dependencyguard.plugin.internal.SuppressionMap
+import com.rubensousa.dependencyguard.plugin.internal.YamlProcessor
+import com.rubensousa.dependencyguard.plugin.internal.report.RestrictionDump
+import com.rubensousa.dependencyguard.plugin.internal.report.VerificationReportBuilder
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
+import org.gradle.api.logging.Logger
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
+import java.io.File
 
-@DisableCachingByDefault(because = "Suppression file might have changed")
+@DisableCachingByDefault(because = "Baseline file might have changed")
 abstract class TaskCheck : DefaultTask() {
 
-    @get:Input
-    internal abstract val projectPath: Property<String>
+    @get:InputFile
+    internal abstract val baselineFile: RegularFileProperty
 
     @get:InputFile
-    internal abstract val reportFile: RegularFileProperty
+    internal abstract val restrictionDumpFile: RegularFileProperty
 
     @TaskAction
     fun dependencyGuardCheck() {
-        val matches = Json.decodeFromString<List<RestrictionMatch>>(reportFile.get().asFile.readText())
-        val suppressedMatches = matches.count { it.isSuppressed }
-        val fatalMatches = matches.filter { !it.isSuppressed }
-        if (suppressedMatches > 0) {
-            logger.warn("Found $suppressedMatches suppressed match(es)")
+        val executor = CheckExecutor(
+            baselineFile = baselineFile.get().asFile,
+            restrictionDumpFile = restrictionDumpFile.get().asFile,
+            logger = logger
+        )
+        executor.execute()
+    }
+
+}
+
+internal class CheckExecutor(
+    private val baselineFile: File,
+    private val restrictionDumpFile: File,
+    private val logger: Logger? = null,
+) {
+
+    fun execute(): Result<Unit> = runCatching {
+        val yamlProcessor = YamlProcessor()
+        val suppressionMap = SuppressionMap()
+        runCatching {
+            yamlProcessor.parse(baselineFile, BaselineConfiguration::class.java)
+        }.onSuccess { config ->
+            suppressionMap.set(config)
+        }.onFailure {
+            println("Skipping baseline since it could not be found or was improperly structured!")
+        }
+        val restrictionDump = Json.decodeFromString<RestrictionDump>(restrictionDumpFile.readText())
+        val reportBuilder = VerificationReportBuilder(suppressionMap)
+        val report = reportBuilder.build(restrictionDump)
+        val fatalMatches = report.modules.flatMap { it.fatal }
+        val suppressedMatches = report.modules.flatMap { it.suppressed }
+        if (suppressedMatches.isNotEmpty()) {
+            println("Found ${suppressedMatches.size} suppressed match(es)")
         }
         if (fatalMatches.isNotEmpty()) {
-            logger.error("Found ${fatalMatches.size} fatal match(es)")
-            throw GradleException(fatalMatches.joinToString("\n\n") { it.asText() })
+            logger?.error("Found ${fatalMatches.size} fatal match(es)")
+            throw GradleException(fatalMatches.joinToString("\n\n") { it.getDescription() })
         }
     }
 
