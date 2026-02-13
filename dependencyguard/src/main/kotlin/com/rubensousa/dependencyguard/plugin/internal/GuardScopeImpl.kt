@@ -14,38 +14,39 @@
  * limitations under the License.
  */
 
-package com.rubensousa.dependencyguard.plugin
+package com.rubensousa.dependencyguard.plugin.internal
 
+import com.rubensousa.dependencyguard.plugin.DenyScope
+import com.rubensousa.dependencyguard.plugin.GuardScope
 import org.gradle.api.Action
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
 import org.gradle.api.provider.Provider
 
-internal val defaultDenyScope = Action<DenyScope> { }
+internal class GuardScopeImpl : GuardScope {
 
-interface ModuleRestrictionScope {
+    private val denied = mutableListOf<ModuleDenialSpec>()
 
-    fun deny(
+    override fun deny(
         dependencyPath: String,
         action: Action<DenyScope>,
-    )
+    ) {
+        val scope = DenyScopeImpl()
+        action.execute(scope)
+        denied.add(
+            ModuleDenialSpec(
+                modulePath = dependencyPath,
+                reason = scope.denyReason,
+            )
+        )
+    }
 
-    fun deny(
+    override fun deny(
         provider: Provider<MinimalExternalModuleDependency>,
         action: Action<DenyScope>,
-    )
-
-    // Required for groovy compatibility
-    fun deny(
-        dependencyPath: String,
     ) {
-        deny(dependencyPath, defaultDenyScope)
+        deny(dependencyPath = provider.getDependencyPath(), action)
     }
 
-    // Required for groovy compatibility
-    fun deny(
-        provider: Provider<MinimalExternalModuleDependency>,
-    ) {
-        deny(provider, defaultDenyScope)
-    }
+    fun getDeniedDependencies() = denied.toList()
 
 }
