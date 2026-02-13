@@ -45,7 +45,6 @@ class DependencyGuardPlugin : Plugin<Project> {
     private val htmlAggregateReportFilePath = "reports/$pluginId"
     private val dependenciesFilePath = "reports/$pluginId/dependencies.json"
     private val jsonReportFilePath = "reports/$pluginId/report.json"
-    private val htmlReportFilePath = "reports/$pluginId"
     private val graphBuilder = DependencyGraphBuilder()
 
     override fun apply(target: Project) {
@@ -140,7 +139,7 @@ class DependencyGuardPlugin : Plugin<Project> {
 
         aggregationTasks.restrictionDump.configure {
             // Aggregate report must take the individual module reports
-            dumpFiles.from(moduleTasks.map { task -> task.restrictionDump.flatMap { task -> task.outputFile } })
+            dumpFiles.from(moduleTasks.map { it.restrictionDump.flatMap { task -> task.outputFile } })
             outputFile.set(rootProject.layout.buildDirectory.file(jsonReportFilePath))
         }
 
