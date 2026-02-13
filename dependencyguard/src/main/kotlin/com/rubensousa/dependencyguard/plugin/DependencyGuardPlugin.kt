@@ -20,6 +20,7 @@ import com.rubensousa.dependencyguard.plugin.internal.report.DependencyGraphBuil
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskProvider
+import java.io.File
 
 /**
  * How the plugin works:
@@ -106,6 +107,7 @@ class DependencyGuardPlugin : Plugin<Project> {
             // Check task must take the report and baseline as input
             restrictionDumpFile.set(moduleTasks.restrictionDump.flatMap { task -> task.outputFile })
             baselineFile.set(aggregationTasks.baselineCreate.flatMap { task -> task.baselineFile })
+            reportFilePath.set(getProjectReportFilePath(project))
             // Run the html report after the check task
             finalizedBy(moduleTasks.htmlReport)
         }
@@ -157,10 +159,19 @@ class DependencyGuardPlugin : Plugin<Project> {
         aggregationTasks.check.configure {
             restrictionDumpFile.set(aggregationTasks.restrictionDump.flatMap { task -> task.outputFile })
             baselineFile.set(aggregationTasks.baselineCreate.flatMap { task -> task.baselineFile })
+            reportFilePath.set(getProjectReportFilePath(project))
+            setMustRunAfter(moduleTasks.map { it.htmlReport })
             // Run the html report after the check task
             finalizedBy(aggregationTasks.htmlReport)
         }
+    }
 
+    private fun getProjectReportFilePath(project: Project): String {
+        val file = project.layout.buildDirectory.asFile.get()
+        val dir = File(file, "reports/$pluginId")
+        dir.mkdirs()
+        val reportFile = File(dir, "index.html")
+        return reportFile.absolutePath.replace(File.separatorChar, '/')
     }
 
     private fun createAggregationTasks(
@@ -169,10 +180,10 @@ class DependencyGuardPlugin : Plugin<Project> {
         return AggregationTasks(
             dependencyDump = createAggregateDependencyDumpTask(rootProject),
             restrictionDump = createAggregateRestrictionTask(rootProject),
-            htmlReport = createAggregateHtmlReportTask(rootProject),
+            htmlReport = createHtmlReportTask(rootProject),
             baselineDump = createBaselineTask(rootProject),
             baselineCreate = createBaselineReferenceTask(rootProject),
-            check = createAggregateCheckTask(rootProject)
+            check = createCheckTask(rootProject)
         )
     }
 
@@ -199,30 +210,6 @@ class DependencyGuardPlugin : Plugin<Project> {
             group = "other"
             description = "Generates an aggregate JSON report of all dependency matches."
             outputs.upToDateWhen { false }
-        }
-    }
-
-    private fun createAggregateHtmlReportTask(
-        rootProject: Project,
-    ): TaskProvider<TaskHtmlReport> {
-        return rootProject.tasks.register(
-            "dependencyGuardHtmlReport",
-            TaskHtmlReport::class.java
-        ) {
-            group = "reporting"
-            description = "Generates an HTML report of all dependency matches."
-        }
-    }
-
-    private fun createAggregateCheckTask(
-        rootProject: Project,
-    ): TaskProvider<TaskCheck> {
-        return rootProject.tasks.register(
-            "dependencyGuardCheck",
-            TaskCheck::class.java
-        ) {
-            group = "verification"
-            description = "Verifies if there are any dependency restrictions in the entire project"
         }
     }
 
@@ -259,20 +246,18 @@ class DependencyGuardPlugin : Plugin<Project> {
         return ModuleTasks(
             check = createCheckTask(targetProject),
             restrictionDump = createModuleRestrictionTask(targetProject, extension),
-            htmlReport = createModuleHtmlReportTask(targetProject),
+            htmlReport = createHtmlReportTask(targetProject),
             dependencyDump = createDependencyDumpTask(targetProject)
         )
     }
 
-    private fun createCheckTask(
-        targetProject: Project,
-    ): TaskProvider<TaskCheck> {
-        return targetProject.tasks.register(
+    private fun createCheckTask(project: Project): TaskProvider<TaskCheck> {
+        return project.tasks.register(
             "dependencyGuardCheck",
             TaskCheck::class.java
         ) {
             group = "verification"
-            description = "Verifies if there are any dependency restrictions being violated"
+            description = "Verifies if there are any dependency restrictions"
         }
     }
 
@@ -295,18 +280,15 @@ class DependencyGuardPlugin : Plugin<Project> {
         }
     }
 
-    private fun createModuleHtmlReportTask(
-        targetProject: Project,
+    private fun createHtmlReportTask(
+        project: Project,
     ): TaskProvider<TaskHtmlReport> {
-        return targetProject.tasks.register(
+        return project.tasks.register(
             "dependencyGuardHtmlReport",
             TaskHtmlReport::class.java
         ) {
             group = "reporting"
             description = "Generates an HTML report of all dependency matches."
-            outputDir.set(
-                targetProject.layout.buildDirectory.dir(htmlReportFilePath)
-            )
             outputs.upToDateWhen { false }
         }
     }

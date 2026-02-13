@@ -25,7 +25,8 @@ import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.logging.Logger
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.work.DisableCachingByDefault
@@ -40,12 +41,15 @@ abstract class TaskCheck : DefaultTask() {
     @get:InputFile
     internal abstract val restrictionDumpFile: RegularFileProperty
 
+    @get:Input
+    internal abstract val reportFilePath: Property<String>
+
     @TaskAction
     fun dependencyGuardCheck() {
         val executor = CheckExecutor(
             baselineFile = baselineFile.get().asFile,
             restrictionDumpFile = restrictionDumpFile.get().asFile,
-            logger = logger
+            reportFilePath = reportFilePath.get(),
         )
         executor.execute().getOrThrow()
     }
@@ -55,7 +59,7 @@ abstract class TaskCheck : DefaultTask() {
 internal class CheckExecutor(
     private val baselineFile: File,
     private val restrictionDumpFile: File,
-    private val logger: Logger? = null,
+    private val reportFilePath: String = "",
 ) {
 
     fun execute(): Result<Unit> = runCatching {
@@ -77,8 +81,9 @@ internal class CheckExecutor(
             println("Found ${suppressedMatches.size} suppressed match(es)")
         }
         if (fatalMatches.isNotEmpty()) {
-            logger?.error("Found ${fatalMatches.size} fatal match(es)")
-            throw GradleException(fatalMatches.joinToString("\n\n") { it.getDescription() })
+            throw GradleException("Found ${fatalMatches.size} fatal match(es). See report at file:///$reportFilePath")
+        } else {
+            println("No fatal matches found. See report at file:///$reportFilePath")
         }
     }
 
