@@ -65,7 +65,7 @@ internal class AggregateRestrictionDumpExecutor(
                 println("Unable to parse file ${file.path}")
             }
         }
-        val dump = RestrictionDump(modules)
+        val dump = RestrictionDump(modules.sortedBy { it.module })
         val jsonWriter = JsonFileWriter()
         jsonWriter.writeToFile(dump, outputFile)
     }

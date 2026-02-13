@@ -61,8 +61,7 @@ internal class AggregateDependencyDumpExecutor(
                 individualModules.addAll(Json.decodeFromString<DependencyGraphDump>(file.readText()).modules)
             }
         }
-        individualModules.sortedBy { it.module }
-        val aggregateReport = DependencyGraphDump(individualModules)
+        val aggregateReport = DependencyGraphDump(individualModules.sortedBy { it.module })
         val jsonWriter = JsonFileWriter()
         jsonWriter.writeToFile(aggregateReport, outputFile)
     }
