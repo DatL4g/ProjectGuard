@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.rubensousa.dependencyguard.plugin.internal
+package com.rubensousa.dependencyguard.plugin
 
-import java.io.Serializable
+interface ModuleRestrictionScope {
 
-internal data class ModuleRestrictionSpec(
-    val modulePath: String,
-    val reason: String,
-    val allowed: List<ModuleAllowSpec>,
-): Serializable
+    fun reason(reason: String)
+
+    fun allow(modulePath: String)
+
+    fun allow(modulePaths: List<String>)
+
+}

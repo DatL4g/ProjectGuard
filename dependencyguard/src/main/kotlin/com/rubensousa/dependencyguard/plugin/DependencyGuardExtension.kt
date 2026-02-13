@@ -20,6 +20,8 @@ import com.rubensousa.dependencyguard.plugin.internal.DependencyGuardSpec
 import com.rubensousa.dependencyguard.plugin.internal.DependencyRestrictionScopeImpl
 import com.rubensousa.dependencyguard.plugin.internal.DependencyRestrictionSpec
 import com.rubensousa.dependencyguard.plugin.internal.GuardScopeImpl
+import com.rubensousa.dependencyguard.plugin.internal.GuardSpec
+import com.rubensousa.dependencyguard.plugin.internal.ModuleRestrictionScopeImpl
 import com.rubensousa.dependencyguard.plugin.internal.ModuleRestrictionSpec
 import com.rubensousa.dependencyguard.plugin.internal.getDependencyPath
 import org.gradle.api.Action
@@ -33,14 +35,27 @@ abstract class DependencyGuardExtension @Inject constructor(
     objects: ObjectFactory,
 ) : DependencyGuardScope {
 
-    private val moduleRestrictions = objects.listProperty<ModuleRestrictionSpec>()
-    private val dependencyRestrictions = objects.listProperty<DependencyRestrictionSpec>()
+    private val guardSpecs = objects.listProperty<GuardSpec>()
+    private val moduleRestrictionSpecs = objects.listProperty<ModuleRestrictionSpec>()
+    private val dependencyRestrictionSpecs = objects.listProperty<DependencyRestrictionSpec>()
+
+    override fun restrictModule(modulePath: String, action: Action<ModuleRestrictionScope>) {
+        val scope = ModuleRestrictionScopeImpl()
+        action.execute(scope)
+        moduleRestrictionSpecs.add(
+            ModuleRestrictionSpec(
+                modulePath = modulePath,
+                reason = scope.getReason(),
+                allowed = scope.getAllowedDependencies()
+            )
+        )
+    }
 
     override fun guard(modulePath: String, action: Action<GuardScope>) {
         val scope = GuardScopeImpl()
         action.execute(scope)
-        moduleRestrictions.add(
-            ModuleRestrictionSpec(
+        guardSpecs.add(
+            GuardSpec(
                 modulePath = modulePath,
                 denied = scope.getDeniedDependencies(),
             )
@@ -53,7 +68,7 @@ abstract class DependencyGuardExtension @Inject constructor(
     ) {
         val scope = DependencyRestrictionScopeImpl()
         action.execute(scope)
-        dependencyRestrictions.add(
+        dependencyRestrictionSpecs.add(
             DependencyRestrictionSpec(
                 dependencyPath = dependencyPath,
                 reason = scope.getReason(),
@@ -74,8 +89,9 @@ abstract class DependencyGuardExtension @Inject constructor(
 
     internal fun getSpec(): DependencyGuardSpec {
         return DependencyGuardSpec(
-            moduleRestrictions = moduleRestrictions.get(),
-            dependencyRestrictions = dependencyRestrictions.get()
+            guardSpecs = guardSpecs.get(),
+            moduleRestrictionSpecs = moduleRestrictionSpecs.get(),
+            dependencyRestrictionSpecs = dependencyRestrictionSpecs.get()
         )
     }
 

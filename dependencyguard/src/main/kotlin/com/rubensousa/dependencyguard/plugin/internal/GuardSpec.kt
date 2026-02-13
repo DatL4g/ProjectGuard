@@ -18,8 +18,7 @@ package com.rubensousa.dependencyguard.plugin.internal
 
 import java.io.Serializable
 
-internal data class ModuleRestrictionSpec(
+internal data class GuardSpec(
     val modulePath: String,
-    val reason: String,
-    val allowed: List<ModuleAllowSpec>,
+    val denied: List<ModuleDenialSpec>,
 ): Serializable

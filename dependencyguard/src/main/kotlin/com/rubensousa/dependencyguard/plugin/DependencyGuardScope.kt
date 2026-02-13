@@ -25,6 +25,28 @@ interface DependencyGuardScope {
     /**
      * Example:
      *
+     * Prevent a module from depending on all other dependencies
+     *
+     * ```
+     * restrictModule(":domain") {
+     *      // Domain modules can only depend on another domain modules
+     *      allow(":domain")
+     * }
+     * ```
+     */
+    fun restrictModule(
+        modulePath: String,
+        action: Action<ModuleRestrictionScope>,
+    )
+
+    // Just here for groovy support
+    fun restrictModule(modulePath: String) {
+        restrictModule(modulePath, defaultModuleRestrictionScope)
+    }
+
+    /**
+     * Example:
+     *
      * ```
      * guard(":domain") {
      *      // Domain modules should not depend on UI modules
@@ -68,20 +90,18 @@ interface DependencyGuardScope {
     )
 
     // Just here for groovy support
-    fun restrictDependency(
-        dependencyPath: String,
-    ) {
+    fun restrictDependency(dependencyPath: String) {
         restrictDependency(dependencyPath, defaultDependencyRestrictionScope)
     }
 
     // Just here for groovy support
-    fun restrictDependency(
-        provider: Provider<MinimalExternalModuleDependency>,
-    ) {
+    fun restrictDependency(provider: Provider<MinimalExternalModuleDependency>) {
         restrictDependency(provider, defaultDependencyRestrictionScope)
     }
 
     companion object {
         private val defaultDependencyRestrictionScope = Action<DependencyRestrictionScope> {}
+        private val defaultModuleRestrictionScope = Action<ModuleRestrictionScope> {}
+
     }
 }
