@@ -72,6 +72,12 @@ internal class DependencyRestrictionFinder {
         dependency: Dependency,
         spec: DependencyGuardSpec,
     ) {
+        fillModuleRestrictions(
+            restrictions = restrictions,
+            moduleId = moduleId,
+            dependency = dependency,
+            spec = spec
+        )
         fillGuardRestrictions(
             restrictions = restrictions,
             moduleId = moduleId,
@@ -87,6 +93,35 @@ internal class DependencyRestrictionFinder {
     }
 
     /**
+     * Module restrictions are deny-by-default.
+     * Each spec specifies individual allowances for dependencies
+     */
+    private fun fillModuleRestrictions(
+        restrictions: MutableList<DependencyRestriction>,
+        moduleId: String,
+        dependency: Dependency,
+        spec: DependencyGuardSpec,
+    ) {
+        spec.moduleRestrictionSpecs.forEach { restriction ->
+            val matchesModule = hasModuleMatch(
+                modulePath = moduleId,
+                referencePath = restriction.modulePath
+            )
+            val isDependencyAllowed = restriction.allowed.any { exclusion ->
+                hasModuleMatch(modulePath = dependency.id, referencePath = exclusion.modulePath)
+            }
+            if (!isDependencyAllowed && matchesModule) {
+                restrictions.add(
+                    DependencyRestriction.from(
+                        dependency = dependency,
+                        reason = restriction.reason,
+                    )
+                )
+            }
+        }
+    }
+
+    /**
      * Guard restrictions are allow-by-default
      * Each guard block specifies individual denials for dependencies
      */
@@ -96,7 +131,7 @@ internal class DependencyRestrictionFinder {
         dependency: Dependency,
         spec: DependencyGuardSpec,
     ) {
-        spec.moduleRestrictions.forEach { restriction ->
+        spec.guardSpecs.forEach { restriction ->
             val matchesModule = hasModuleMatch(
                 modulePath = moduleId,
                 referencePath = restriction.modulePath
@@ -129,7 +164,7 @@ internal class DependencyRestrictionFinder {
         dependency: Dependency,
         spec: DependencyGuardSpec,
     ) {
-        spec.dependencyRestrictions.forEach { restriction ->
+        spec.dependencyRestrictionSpecs.forEach { restriction ->
             val isDependencyRestricted = hasModuleMatch(
                 modulePath = dependency.id,
                 referencePath = restriction.dependencyPath

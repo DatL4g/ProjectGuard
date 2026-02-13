@@ -16,13 +16,9 @@
 
 package com.rubensousa.dependencyguard.plugin.internal
 
-import org.gradle.api.artifacts.MinimalExternalModuleDependency
-import org.gradle.api.provider.Provider
+import java.io.Serializable
 
-internal fun Provider<MinimalExternalModuleDependency>.getDependencyPath(): String {
-    return get().getDependencyPath()
-}
-
-internal fun MinimalExternalModuleDependency.getDependencyPath(): String {
-    return "${group}:${name}"
-}
+internal data class GuardSpec(
+    val modulePath: String,
+    val denied: List<ModuleDenialSpec>,
+): Serializable

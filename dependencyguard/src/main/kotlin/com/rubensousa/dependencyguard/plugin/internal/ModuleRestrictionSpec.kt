@@ -20,5 +20,6 @@ import java.io.Serializable
 
 internal data class ModuleRestrictionSpec(
     val modulePath: String,
-    val denied: List<ModuleDenialSpec>,
+    val reason: String,
+    val allowed: List<ModuleAllowSpec>,
 ): Serializable

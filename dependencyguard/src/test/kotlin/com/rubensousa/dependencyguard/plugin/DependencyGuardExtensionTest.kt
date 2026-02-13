@@ -39,7 +39,7 @@ class DependencyGuardExtensionTest {
 
         // then
         val spec = extension.getSpec()
-        val restrictions = spec.moduleRestrictions
+        val restrictions = spec.guardSpecs
         assertThat(restrictions).hasSize(1)
         assertThat(restrictions.first().modulePath).isEqualTo(":app")
         assertThat(restrictions.first().denied.first().modulePath).isEqualTo(":legacy")
@@ -61,7 +61,7 @@ class DependencyGuardExtensionTest {
 
         // then
         val spec = extension.getSpec()
-        val restrictions = spec.dependencyRestrictions
+        val restrictions = spec.dependencyRestrictionSpecs
         assertThat(restrictions).hasSize(1)
         assertThat(restrictions.first().dependencyPath).isEqualTo(":legacy")
         assertThat(restrictions.first().allowed).containsExactly(ModuleAllowSpec(":legacy:a"))
