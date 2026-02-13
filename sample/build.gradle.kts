@@ -9,15 +9,21 @@ plugins {
 }
 
 dependencyGuard {
-    guard(":domain") {
-        deny(":data") {
-            reason("Dependency should be inverted. Data depends on domain")
-        }
+    guard(":data") {
+        deny(":legacy")
     }
-    guard(":feature") {
-        deny(":feature") {
-            reason("Features should not depend on other features directly")
-        }
+    restrictModule(":android") {
+        // Test dependencies are fine
+        allow(libs.junit)
+    }
+    restrictModule(":domain") {
+        reason("Domain modules should not depend on other modules")
+
+        // Domain modules can only depend on another domain modules
+        allow(":domain")
+
+        // Test dependencies are fine
+        allow(libs.junit)
     }
     restrictDependency(":legacy") {
         reason("Legacy modules should no longer be used")

@@ -16,12 +16,24 @@
 
 package com.rubensousa.dependencyguard.plugin
 
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.provider.Provider
+
 interface ModuleRestrictionScope {
 
     fun reason(reason: String)
 
     fun allow(modulePath: String)
 
-    fun allow(modulePaths: List<String>)
+    fun allow(library: Provider<MinimalExternalModuleDependency>)
+
+    fun allowModules(modulePaths: List<String>)
+
+    fun allowLibs(libraries: List<Provider<MinimalExternalModuleDependency>>)
+
+    // Not sure this is a good idea, bundles can be updated without seeing what dependencies we are allowing
+   /* fun allowBundle(bundle: Provider<ExternalModuleDependencyBundle>) {
+        bundle.get().forEach { library -> allow(library.getDependencyPath()) }
+    }*/
 
 }

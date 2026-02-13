@@ -17,6 +17,8 @@
 package com.rubensousa.dependencyguard.plugin.internal
 
 import com.rubensousa.dependencyguard.plugin.ModuleRestrictionScope
+import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.provider.Provider
 
 internal class ModuleRestrictionScopeImpl : ModuleRestrictionScope {
 
@@ -35,10 +37,16 @@ internal class ModuleRestrictionScopeImpl : ModuleRestrictionScope {
         )
     }
 
-    override fun allow(modulePaths: List<String>) {
-        modulePaths.forEach { path ->
-            allow(path)
-        }
+    override fun allowModules(modulePaths: List<String>) {
+        modulePaths.forEach { path -> allow(path) }
+    }
+
+    override fun allow(library: Provider<MinimalExternalModuleDependency>) {
+        allow(library.getDependencyPath())
+    }
+
+    override fun allowLibs(libraries: List<Provider<MinimalExternalModuleDependency>>) {
+        libraries.forEach { library -> allow(library) }
     }
 
     fun getAllowedDependencies() = allowed.toList()

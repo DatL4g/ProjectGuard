@@ -144,7 +144,7 @@ class ModuleRestrictionTest {
         // given
         val spec = dependencyGuard {
             restrictModule(":domain") {
-                allow(listOf(":domain:a", ":domain:b"))
+                allowModules(listOf(":domain:a", ":domain:b"))
             }
         }
 
