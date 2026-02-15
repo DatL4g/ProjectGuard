@@ -46,6 +46,8 @@ interface GuardScope {
         deny(provider, defaultDenyScope)
     }
 
+    fun applyRule(rule: GuardRule)
+
     companion object {
         internal val defaultDenyScope = Action<DenyScope> { }
     }

@@ -31,6 +31,8 @@ interface ModuleRestrictionScope {
 
     fun allowLibs(libraries: List<Provider<MinimalExternalModuleDependency>>)
 
+    fun applyRule(rule: RestrictModuleRule)
+
     // Not sure this is a good idea, bundles can be updated without seeing what dependencies we are allowing
    /* fun allowBundle(bundle: Provider<ExternalModuleDependencyBundle>) {
         bundle.get().forEach { library -> allow(library.getDependencyPath()) }

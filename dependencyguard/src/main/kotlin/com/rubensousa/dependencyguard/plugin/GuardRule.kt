@@ -16,15 +16,16 @@
 
 package com.rubensousa.dependencyguard.plugin
 
+import com.rubensousa.dependencyguard.plugin.internal.ModuleDenialSpec
 
-interface DependencyRestrictionScope {
+class GuardRule internal constructor() {
 
-    fun reason(reason: String)
+    private var denials = emptyList<ModuleDenialSpec>()
 
-    fun allow(modulePath: String)
+    internal fun setDenials(spec: List<ModuleDenialSpec>) {
+        denials = spec
+    }
 
-    fun allow(modulePaths: List<String>)
-
-    fun applyRule(rule: RestrictDependencyRule)
+    internal fun getDenials(): List<ModuleDenialSpec> = denials
 
 }

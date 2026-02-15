@@ -17,6 +17,7 @@
 package com.rubensousa.dependencyguard.plugin.internal
 
 import com.rubensousa.dependencyguard.plugin.DenyScope
+import com.rubensousa.dependencyguard.plugin.GuardRule
 import com.rubensousa.dependencyguard.plugin.GuardScope
 import org.gradle.api.Action
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
@@ -45,6 +46,10 @@ internal class GuardScopeImpl : GuardScope {
         action: Action<DenyScope>,
     ) {
         deny(dependencyPath = provider.getDependencyPath(), action)
+    }
+
+    override fun applyRule(rule: GuardRule) {
+        denied.addAll(rule.getDenials())
     }
 
     fun getDeniedDependencies() = denied.toList()

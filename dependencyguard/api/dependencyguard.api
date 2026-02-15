@@ -5,9 +5,12 @@ public abstract interface class com/rubensousa/dependencyguard/plugin/DenyScope 
 public abstract class com/rubensousa/dependencyguard/plugin/DependencyGuardExtension : com/rubensousa/dependencyguard/plugin/DependencyGuardScope {
 	public fun <init> (Lorg/gradle/api/model/ObjectFactory;)V
 	public fun guard (Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public fun guardRule (Lorg/gradle/api/Action;)Lcom/rubensousa/dependencyguard/plugin/GuardRule;
 	public fun restrictDependency (Ljava/lang/String;Lorg/gradle/api/Action;)V
 	public fun restrictDependency (Lorg/gradle/api/provider/Provider;Lorg/gradle/api/Action;)V
+	public fun restrictDependencyRule (Lorg/gradle/api/Action;)Lcom/rubensousa/dependencyguard/plugin/RestrictDependencyRule;
 	public fun restrictModule (Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public fun restrictModuleRule (Lorg/gradle/api/Action;)Lcom/rubensousa/dependencyguard/plugin/RestrictModuleRule;
 }
 
 public final class com/rubensousa/dependencyguard/plugin/DependencyGuardPlugin : org/gradle/api/Plugin {
@@ -19,12 +22,15 @@ public final class com/rubensousa/dependencyguard/plugin/DependencyGuardPlugin :
 public abstract interface class com/rubensousa/dependencyguard/plugin/DependencyGuardScope {
 	public static final field Companion Lcom/rubensousa/dependencyguard/plugin/DependencyGuardScope$Companion;
 	public abstract fun guard (Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public abstract fun guardRule (Lorg/gradle/api/Action;)Lcom/rubensousa/dependencyguard/plugin/GuardRule;
 	public fun restrictDependency (Ljava/lang/String;)V
 	public abstract fun restrictDependency (Ljava/lang/String;Lorg/gradle/api/Action;)V
 	public fun restrictDependency (Lorg/gradle/api/provider/Provider;)V
 	public abstract fun restrictDependency (Lorg/gradle/api/provider/Provider;Lorg/gradle/api/Action;)V
+	public abstract fun restrictDependencyRule (Lorg/gradle/api/Action;)Lcom/rubensousa/dependencyguard/plugin/RestrictDependencyRule;
 	public fun restrictModule (Ljava/lang/String;)V
 	public abstract fun restrictModule (Ljava/lang/String;Lorg/gradle/api/Action;)V
+	public abstract fun restrictModuleRule (Lorg/gradle/api/Action;)Lcom/rubensousa/dependencyguard/plugin/RestrictModuleRule;
 }
 
 public final class com/rubensousa/dependencyguard/plugin/DependencyGuardScope$Companion {
@@ -33,11 +39,16 @@ public final class com/rubensousa/dependencyguard/plugin/DependencyGuardScope$Co
 public abstract interface class com/rubensousa/dependencyguard/plugin/DependencyRestrictionScope {
 	public abstract fun allow (Ljava/lang/String;)V
 	public abstract fun allow (Ljava/util/List;)V
+	public abstract fun applyRule (Lcom/rubensousa/dependencyguard/plugin/RestrictDependencyRule;)V
 	public abstract fun reason (Ljava/lang/String;)V
+}
+
+public final class com/rubensousa/dependencyguard/plugin/GuardRule {
 }
 
 public abstract interface class com/rubensousa/dependencyguard/plugin/GuardScope {
 	public static final field Companion Lcom/rubensousa/dependencyguard/plugin/GuardScope$Companion;
+	public abstract fun applyRule (Lcom/rubensousa/dependencyguard/plugin/GuardRule;)V
 	public fun deny (Ljava/lang/String;)V
 	public abstract fun deny (Ljava/lang/String;Lorg/gradle/api/Action;)V
 	public fun deny (Lorg/gradle/api/provider/Provider;)V
@@ -52,6 +63,13 @@ public abstract interface class com/rubensousa/dependencyguard/plugin/ModuleRest
 	public abstract fun allow (Lorg/gradle/api/provider/Provider;)V
 	public abstract fun allowLibs (Ljava/util/List;)V
 	public abstract fun allowModules (Ljava/util/List;)V
+	public abstract fun applyRule (Lcom/rubensousa/dependencyguard/plugin/RestrictModuleRule;)V
 	public abstract fun reason (Ljava/lang/String;)V
+}
+
+public final class com/rubensousa/dependencyguard/plugin/RestrictDependencyRule {
+}
+
+public final class com/rubensousa/dependencyguard/plugin/RestrictModuleRule {
 }
 
