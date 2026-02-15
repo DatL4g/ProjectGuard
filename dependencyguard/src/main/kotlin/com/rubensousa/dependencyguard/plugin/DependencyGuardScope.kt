@@ -25,6 +25,22 @@ interface DependencyGuardScope {
     /**
      * Example:
      *
+     * ```
+     * val kotlinRule = restrictModuleRule {
+     *    allow(libs.kotlinx.coroutines)
+     *    allow(libs.kotlinx.datetime)
+     * }
+     * restrictModule(":domain") {
+     *      // Domain modules can have access to kotlin libraries
+     *      applyRule(kotlinRule)
+     * }
+     * ```
+     */
+    fun restrictModuleRule(action: Action<ModuleRestrictionScope>): RestrictModuleRule
+
+    /**
+     * Example:
+     *
      * Prevent a module from depending on all other dependencies
      *
      * ```
@@ -43,6 +59,21 @@ interface DependencyGuardScope {
     fun restrictModule(modulePath: String) {
         restrictModule(modulePath, defaultModuleRestrictionScope)
     }
+
+    /**
+     * Example:
+     *
+     * ```
+     * val androidRule = guardRule {
+     *    deny("androidx")
+     * }
+     * guard(":domain") {
+     *      // Domain modules should not depend on android libraries
+     *      applyRule(androidRule)
+     * }
+     * ```
+     */
+    fun guardRule(action: Action<GuardScope>): GuardRule
 
     /**
      * Example:
@@ -98,21 +129,6 @@ interface DependencyGuardScope {
     fun restrictDependency(provider: Provider<MinimalExternalModuleDependency>) {
         restrictDependency(provider, defaultDependencyRestrictionScope)
     }
-
-    /**
-     * Example:
-     *
-     * ```
-     * val androidRule = rule {
-     *    deny("androidx")
-     * }
-     * guard(":domain") {
-     *      // Domain modules should not depend on android libraries
-     *      applyRule(androidRule)
-     * }
-     * ```
-     */
-    fun guardRule(action: Action<GuardScope>): GuardRule
 
     companion object {
         private val defaultDependencyRestrictionScope = Action<DependencyRestrictionScope> {}

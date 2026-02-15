@@ -25,13 +25,9 @@ import org.junit.Test
 class DependencyGuardExtensionTest {
 
     @Test
-    fun `extension correctly configures module restrictions`() {
+    fun `extension correctly configures guard spec`() {
         // given
-        val project = ProjectBuilder.builder().build()
-        val extension = project.extensions.create(
-            "dependencyGuard",
-            DependencyGuardExtension::class.java
-        )
+        val extension = createExtension()
 
         // when
         extension.guard(":app") {
@@ -40,20 +36,34 @@ class DependencyGuardExtensionTest {
 
         // then
         val spec = extension.getSpec()
-        val restrictions = spec.guardSpecs
+        val guards = spec.guardSpecs
+        assertThat(guards).hasSize(1)
+        assertThat(guards.first().modulePath).isEqualTo(":app")
+        assertThat(guards.first().denied.first().modulePath).isEqualTo(":legacy")
+    }
+
+    @Test
+    fun `extension correctly configures module restriction`() {
+        // given
+        val extension = createExtension()
+
+        // when
+        extension.restrictModule(":domain") {
+            allow("kotlin")
+        }
+
+        // then
+        val spec = extension.getSpec()
+        val restrictions = spec.moduleRestrictionSpecs
         assertThat(restrictions).hasSize(1)
-        assertThat(restrictions.first().modulePath).isEqualTo(":app")
-        assertThat(restrictions.first().denied.first().modulePath).isEqualTo(":legacy")
+        assertThat(restrictions.first().modulePath).isEqualTo(":domain")
+        assertThat(restrictions.first().allowed.first().modulePath).isEqualTo("kotlin")
     }
 
     @Test
     fun `extension correctly configures dependency restrictions`() {
         // given
-        val project = ProjectBuilder.builder().build()
-        val extension = project.extensions.create(
-            "dependencyGuard",
-            DependencyGuardExtension::class.java
-        )
+        val extension = createExtension()
 
         // when
         extension.restrictDependency(":legacy") {
@@ -71,11 +81,7 @@ class DependencyGuardExtensionTest {
     @Test
     fun `extension configures re-usable guard rule`() {
         // given
-        val project = ProjectBuilder.builder().build()
-        val extension = project.extensions.create(
-            "dependencyGuard",
-            DependencyGuardExtension::class.java
-        )
+        val extension = createExtension()
 
         // when
         val rule = extension.guardRule {
@@ -102,6 +108,35 @@ class DependencyGuardExtensionTest {
                     reason = "coil reason"
                 )
             )
+        )
+    }
+
+    @Test
+    fun `extension configures re-usable restrict module rule`() {
+        // given
+        val extension = createExtension()
+
+        // when
+        val rule = extension.restrictModuleRule {
+            allow("kotlin")
+        }
+        extension.restrictModule(":domain") {
+            applyRule(rule)
+        }
+
+        // then
+        val spec = extension.getSpec()
+        val restrictions = spec.moduleRestrictionSpecs
+        assertThat(restrictions).hasSize(1)
+        assertThat(restrictions.first().modulePath).isEqualTo(":domain")
+        assertThat(restrictions.first().allowed.first().modulePath).isEqualTo("kotlin")
+    }
+
+    private fun createExtension(): DependencyGuardExtension {
+        val project = ProjectBuilder.builder().build()
+        return project.extensions.create(
+            "dependencyGuard",
+            DependencyGuardExtension::class.java
         )
     }
 }

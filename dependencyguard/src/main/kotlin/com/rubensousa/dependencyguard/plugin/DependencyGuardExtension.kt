@@ -95,6 +95,14 @@ abstract class DependencyGuardExtension @Inject constructor(
         return rule
     }
 
+    override fun restrictModuleRule(action: Action<ModuleRestrictionScope>): RestrictModuleRule {
+        val rule = RestrictModuleRule()
+        val scope = ModuleRestrictionScopeImpl()
+        action.execute(scope)
+        rule.setSpecs(scope.getAllowedDependencies())
+        return rule
+    }
+
     internal fun getSpec(): DependencyGuardSpec {
         return DependencyGuardSpec(
             guardSpecs = guardSpecs.get(),
