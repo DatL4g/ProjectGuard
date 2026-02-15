@@ -87,6 +87,14 @@ abstract class DependencyGuardExtension @Inject constructor(
         )
     }
 
+    override fun guardRule(action: Action<GuardScope>): GuardRule {
+        val rule = GuardRule()
+        val scope = GuardScopeImpl()
+        action.execute(scope)
+        rule.setDenials(scope.getDeniedDependencies())
+        return rule
+    }
+
     internal fun getSpec(): DependencyGuardSpec {
         return DependencyGuardSpec(
             guardSpecs = guardSpecs.get(),

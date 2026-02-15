@@ -18,6 +18,7 @@ package com.rubensousa.dependencyguard.plugin
 
 import com.google.common.truth.Truth.assertThat
 import com.rubensousa.dependencyguard.plugin.internal.ModuleAllowSpec
+import com.rubensousa.dependencyguard.plugin.internal.ModuleDenialSpec
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.Test
 
@@ -65,5 +66,42 @@ class DependencyGuardExtensionTest {
         assertThat(restrictions).hasSize(1)
         assertThat(restrictions.first().dependencyPath).isEqualTo(":legacy")
         assertThat(restrictions.first().allowed).containsExactly(ModuleAllowSpec(":legacy:a"))
+    }
+
+    @Test
+    fun `extension configures re-usable guard rule`() {
+        // given
+        val project = ProjectBuilder.builder().build()
+        val extension = project.extensions.create(
+            "dependencyGuard",
+            DependencyGuardExtension::class.java
+        )
+
+        // when
+        val rule = extension.guardRule {
+            deny("androidx") { reason("androidx reason") }
+            deny("coil") { reason("coil reason") }
+        }
+        extension.guard(":domain") {
+            applyRule(rule)
+        }
+
+        // then
+        val spec = extension.getSpec()
+        val restrictions = spec.guardSpecs
+        assertThat(restrictions).hasSize(1)
+        val restriction = restrictions.first()
+        assertThat(restriction.denied).isEqualTo(
+            listOf(
+                ModuleDenialSpec(
+                    modulePath = "androidx",
+                    reason = "androidx reason"
+                ),
+                ModuleDenialSpec(
+                    modulePath = "coil",
+                    reason = "coil reason"
+                )
+            )
+        )
     }
 }

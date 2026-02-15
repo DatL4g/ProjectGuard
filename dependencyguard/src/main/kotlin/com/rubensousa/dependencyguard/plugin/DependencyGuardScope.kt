@@ -99,6 +99,21 @@ interface DependencyGuardScope {
         restrictDependency(provider, defaultDependencyRestrictionScope)
     }
 
+    /**
+     * Example:
+     *
+     * ```
+     * val androidRule = rule {
+     *    deny("androidx")
+     * }
+     * guard(":domain") {
+     *      // Domain modules should not depend on android libraries
+     *      applyRule(androidRule)
+     * }
+     * ```
+     */
+    fun guardRule(action: Action<GuardScope>): GuardRule
+
     companion object {
         private val defaultDependencyRestrictionScope = Action<DependencyRestrictionScope> {}
         private val defaultModuleRestrictionScope = Action<ModuleRestrictionScope> {}
