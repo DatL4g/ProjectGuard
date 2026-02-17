@@ -86,7 +86,6 @@ internal class DependencyGraphBuilder {
                     }
                 graph
             }
-            .filter { graph -> graph.nodes.isNotEmpty() }
     }
 
     private fun isConfigurationSupported(configurationId: String): Boolean {
