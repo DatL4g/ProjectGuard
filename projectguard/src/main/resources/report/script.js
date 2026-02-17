@@ -1,5 +1,5 @@
 // The report data is injected by the report generator
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', function() {
     if (window.REPORT_DATA) {
         initializeReport(window.REPORT_DATA);
     } else {
@@ -59,12 +59,13 @@ function renderForActiveTab(report) {
         renderSidebarForDependencies(report);
         renderByDependencyView(report);
     } else {
+        renderSidebarForGraph(report);
         renderGraphView(report);
     }
 }
 
 function setupGlobalEventListeners() {
-    document.body.addEventListener('click', function (event) {
+    document.body.addEventListener('click', function(event) {
         // Handle main card header clicks for expansion
         const cardHeader = event.target.closest('.card-header');
         if (cardHeader) {
@@ -76,23 +77,39 @@ function setupGlobalEventListeners() {
         }
     });
 
-    document.getElementById('sidebar').addEventListener('click', function (event) {
+    document.getElementById('sidebar').addEventListener('click', function(event) {
         const summary = event.target.closest('summary');
         if (summary) {
             event.preventDefault();
             const details = summary.parentElement;
             details.open = !details.open;
+            return;
+        }
+
+        const activeTabId = document.querySelector('.tab-button.active').dataset.tab;
+        if (activeTabId === 'graph') {
+            const link = event.target.closest('a');
+            if (link && link.dataset.module) {
+                event.preventDefault();
+                const moduleName = link.dataset.module;
+                const selector = document.getElementById('module-selector');
+                if (selector.value !== moduleName) {
+                    selector.value = moduleName;
+                    selector.dispatchEvent(new Event('change'));
+                }
+            }
         }
     });
 }
 
 
 // --- Sidebar Rendering ---
+
 function groupModules(modules) {
     const grouped = {};
     modules.forEach(module => {
         const parts = module.module.split(':');
-        let groupName = 'ungrouped';
+        let groupName = module.module
         if (parts.length > 2) {
             groupName = parts.slice(0, 2).join(':');
         }
@@ -108,7 +125,7 @@ function renderModuleGroups(groupedModules, showFatalCount) {
     let content = '<ul>';
     Object.keys(groupedModules).sort().forEach(groupName => {
         const modules = groupedModules[groupName];
-        if (groupName === 'ungrouped') {
+        if (modules.length == 1) {
             modules.forEach(module => {
                 content += `<li><a href="#module-${module.module.replace(/:/g, '-')}">
                     <span>${module.module}</span>
@@ -159,10 +176,10 @@ function renderSidebarForModules(report) {
     sidebar.innerHTML = content + '</nav>';
 }
 
-function groupDependencies(deps) {
+function groupModuleNames(deps) {
     const grouped = {};
     deps.forEach(dep => {
-        let groupName = 'ungrouped';
+        let groupName = dep;
         if (dep.startsWith(':')) { // Module dependency
             const parts = dep.split(':');
             if (parts.length > 2) {
@@ -192,7 +209,7 @@ function renderDependencyGroups(groupedDependencies, allDependencies, showFatalC
     let content = '<ul>';
     Object.keys(groupedDependencies).sort().forEach(groupName => {
         const deps = groupedDependencies[groupName];
-        if (groupName === 'ungrouped') {
+        if (deps.length == 1) {
             deps.forEach(dep => {
                 const fatalCount = showFatalCount ? allDependencies[dep].filter(m => !m.isSuppressed).length : 0;
                 content += `<li><a href="#dep-${dep.replace(/[.:]/g, '-')}">
@@ -232,13 +249,13 @@ function renderSidebarForDependencies(report) {
 
     if (depsWithFatal.length > 0) {
         content += '<div class="sidebar-section-title">Fatal</div>';
-        const groupedFatalDeps = groupDependencies(depsWithFatal);
+        const groupedFatalDeps = groupModuleNames(depsWithFatal);
         content += renderDependencyGroups(groupedFatalDeps, dependencies, true);
     }
 
     if (depsWithSuppressedOnly.length > 0) {
         content += '<div class="sidebar-section-title">Suppressed</div>';
-        const groupedSuppressedDeps = groupDependencies(depsWithSuppressedOnly);
+        const groupedSuppressedDeps = groupModuleNames(depsWithSuppressedOnly);
         content += renderDependencyGroups(groupedSuppressedDeps, dependencies, false);
     }
 
@@ -247,6 +264,39 @@ function renderSidebarForDependencies(report) {
     }
 
     sidebar.innerHTML = content + '</nav>';
+}
+
+function renderSidebarForGraph(report) {
+    const sidebar = document.getElementById('sidebar');
+    const modules = Object.keys(report.dependencyGraph);
+    let content = '<div class="sidebar-header">Graphs</div><nav class="sidebar-nav">';
+    content += renderGraphGroups(groupModuleNames(modules));
+    sidebar.innerHTML = content + '</nav>';
+}
+
+function renderGraphGroups(moduleGroups) {
+    let content = '<ul>';
+    Object.keys(moduleGroups).sort().forEach(groupName => {
+        const moduleGroup = moduleGroups[groupName];
+        if (moduleGroup.length == 1) {
+            moduleGroup.forEach(dep => {
+                content += `<li><a href="#" data-module="${dep}"><span>${dep}</span></a></li>`;
+            });
+        } else {
+            content += `
+                <details>
+                    <summary>${groupName}</summary>
+                    <ul>
+                        ${moduleGroup.map(dep => {
+                                return `<li><a href="#" data-module="${dep}"><span>${dep}</span></a></li>`;
+                        }).join('')}
+                    </ul>
+                </details>
+            `;
+        }
+    });
+    content += '</ul>';
+    return content;
 }
 
 
@@ -414,15 +464,14 @@ function getMatchesByDependency(report) {
 
 function renderGraphView(report) {
     const selector = document.getElementById('module-selector');
-    selector.innerHTML = report.modules.map(m => `<option value="${m.module}">${m.module}</option>`).join('');
+    selector.innerHTML = Object.keys(report.dependencyGraph).map(m => `<option value="${m}">${m}</option>`).join('');
     selector.addEventListener('change', () => renderModuleGraph(report, selector.value));
     renderModuleGraph(report, selector.value);
 }
 
 function renderModuleGraph(report, moduleName) {
     const moduleReport = report.modules.find(m => m.module === moduleName);
-    if (!moduleReport) return;
-    const graph = getModuleDependencyGraph(moduleReport.module, report.dependencyGraph);
+    const graph = getModuleDependencyGraph(moduleName, report.dependencyGraph);
     const restrictedDependencies = getModuleRestrictions(moduleReport);
     const nodes = new Map();
     let counter = 0;
@@ -501,6 +550,9 @@ function getModuleDependencyGraph(module, projectDependencies) {
 
 function getModuleRestrictions(moduleReport) {
     const restrictedDependencies = new Set();
+    if (moduleReport === undefined) {
+        return restrictedDependencies;
+    }
     moduleReport.fatal.forEach(item => {
         restrictedDependencies.add(item.dependency);
     })
