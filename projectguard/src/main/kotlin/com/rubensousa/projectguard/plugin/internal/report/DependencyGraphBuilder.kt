@@ -42,7 +42,17 @@ internal class DependencyGraphBuilder {
                     DependencyGraph(configurationId = configuration.id)
                 }
                 configuration.dependencies.forEach { dependency ->
-                    graph.addDependency(report.module, dependency)
+                    if (dependency.isLibrary) {
+                        graph.addExternalDependency(
+                            module = report.module,
+                            dependency = dependency.id,
+                        )
+                    } else {
+                        graph.addInternalDependency(
+                            module = report.module,
+                            dependency = dependency.id,
+                        )
+                    }
                 }
             }
         }
@@ -62,14 +72,14 @@ internal class DependencyGraphBuilder {
                         when (dependency) {
                             is ProjectDependency -> {
                                 if (dependency.path != moduleId) {
-                                    graph.addDependency(moduleId, dependency.path)
+                                    graph.addInternalDependency(moduleId, dependency.path)
                                 }
                             }
 
                             is ExternalModuleDependency -> {
-                                graph.addDependency(
-                                    moduleId,
-                                    "${dependency.group}:${dependency.name}"
+                                graph.addExternalDependency(
+                                    module = moduleId,
+                                    dependency = "${dependency.group}:${dependency.name}",
                                 )
                             }
                         }

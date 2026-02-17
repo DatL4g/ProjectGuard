@@ -206,12 +206,12 @@ function renderDependencyGroups(groupedDependencies, allDependencies, showFatalC
                     <summary>${groupName}</summary>
                     <ul>
                         ${deps.map(dep => {
-                            const fatalCount = showFatalCount ? allDependencies[dep].filter(m => !m.isSuppressed).length : 0;
-                            return `<li><a href="#dep-${dep.replace(/[.:]/g, '-')}">
+                const fatalCount = showFatalCount ? allDependencies[dep].filter(m => !m.isSuppressed).length : 0;
+                return `<li><a href="#dep-${dep.replace(/[.:]/g, '-')}">
                                 <span>${dep}</span>
                                 ${showFatalCount ? `<span class="badge badge-fatal">${fatalCount}</span>` : ''}
                             </a></li>`;
-                        }).join('')}
+            }).join('')}
                     </ul>
                 </details>
             `;
@@ -489,8 +489,10 @@ function getModuleDependencyGraph(module, projectDependencies) {
         const list = [];
         nextDependencies = projectMap.get(dependency);
         nextDependencies?.forEach((nextDependency) => {
-            list.push(nextDependency)
-            stack.push(nextDependency)
+            if (!nextDependency.isLibrary) {
+                list.push(nextDependency.id)
+                stack.push(nextDependency.id)
+            }
         })
         nodeMap.set(dependency, list);
     }

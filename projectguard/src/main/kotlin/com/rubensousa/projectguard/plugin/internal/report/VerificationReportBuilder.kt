@@ -70,14 +70,18 @@ internal class VerificationReportBuilder(
                     suppressed = totalSuppressedMatches[moduleId]?.sortedBy { it.dependency } ?: emptyList(),
                 )
             }
-        val graph = mutableMapOf<String, MutableSet<String>>()
+        val graph = mutableMapOf<String, MutableSet<DependencyReferenceDump>>()
         dependencyGraphDump.modules.forEach { report ->
             report.configurations.forEach { configuration ->
                 val moduleDependencies = graph.getOrPut(report.module) { mutableSetOf() }
-                moduleDependencies.addAll(configuration.dependencies)
+                moduleDependencies.addAll(configuration.dependencies.map { dependency ->
+                    DependencyReferenceDump(dependency.id, dependency.isLibrary)
+                })
             }
         }
-        return VerificationReport(sortedReports, graph.mapValues { it.value.sorted() })
+        return VerificationReport(sortedReports, graph.mapValues { entry ->
+            entry.value.sortedBy { it.id }
+        })
     }
 
 }

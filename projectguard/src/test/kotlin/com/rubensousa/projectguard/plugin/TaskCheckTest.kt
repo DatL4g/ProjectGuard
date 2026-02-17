@@ -34,7 +34,7 @@ class TaskCheckTest {
         // given
         val moduleId = ":domain"
         val fatalModuleId = ":legacy"
-        plugin.dumpDependencies(moduleId) { addDependency(moduleId, fatalModuleId) }
+        plugin.dumpDependencies(moduleId) { addInternalDependency(moduleId, fatalModuleId) }
         plugin.dumpAggregateDependencies()
         // Empty spec to allow the invalid combination
         val spec = projectGuard {}
@@ -52,7 +52,7 @@ class TaskCheckTest {
         // given
         val moduleId = ":domain"
         val fatalModuleId = ":legacy"
-        plugin.dumpDependencies(moduleId) { addDependency(moduleId, fatalModuleId) }
+        plugin.dumpDependencies(moduleId) { addInternalDependency(moduleId, fatalModuleId) }
         plugin.dumpAggregateDependencies()
         // Empty spec to allow the invalid combination
         val spec = projectGuard {
@@ -74,7 +74,7 @@ class TaskCheckTest {
         // given
         val moduleId = ":domain"
         val fatalModuleId = ":legacy"
-        plugin.dumpDependencies(moduleId) { addDependency(moduleId, fatalModuleId) }
+        plugin.dumpDependencies(moduleId) { addInternalDependency(moduleId, fatalModuleId) }
         plugin.dumpAggregateDependencies()
         // Empty spec to allow the invalid combination
         val spec = projectGuard {
@@ -94,7 +94,7 @@ class TaskCheckTest {
         // given
         val moduleId = ":domain"
         val fatalModuleId = ":legacy"
-        plugin.dumpDependencies(moduleId) { addDependency(moduleId, fatalModuleId) }
+        plugin.dumpDependencies(moduleId) { addInternalDependency(moduleId, fatalModuleId) }
         plugin.dumpAggregateDependencies()
         // Empty spec to allow the invalid combination
         val spec = projectGuard {}
