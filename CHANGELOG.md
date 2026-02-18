@@ -1,6 +1,16 @@
 
 # CHANGELOG
 
+## 1.0.0-alpha07 (2026-02-18)
+
+- Added graph visualization section to the html report
+- Moved html report generation to the check task, avoiding an extra round trip
+
+### Bug fixes
+
+- Fixed path to transitive dependency not being shown in the html report
+- Fixed non android modules being considered as libraries from android modules
+
 ## 1.0.0-alpha06 (2026-02-16)
 
 - Split aggregation check task to `projectGuardAggregateCheck`. The plugin is capable of generating the entire project report without running all individual check tasks
