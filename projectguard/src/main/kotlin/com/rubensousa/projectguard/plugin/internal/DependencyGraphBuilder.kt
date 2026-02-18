@@ -69,19 +69,10 @@ internal class DependencyGraphBuilder {
                             }
 
                             is ExternalModuleDependency -> {
-                                if (dependency.group == null) {
-                                    // Java/Kotlin libraries provided to android modules are treated as external modules
-                                    // TODO: Improve detection
-                                    graph.addInternalDependency(
-                                        module = moduleId,
-                                        dependency = ":${dependency.name}:${dependency.versionConstraint.displayName}"
-                                    )
-                                } else {
-                                    graph.addExternalDependency(
-                                        module = moduleId,
-                                        dependency = "${dependency.group}:${dependency.name}",
-                                    )
-                                }
+                                graph.addExternalDependency(
+                                    module = moduleId,
+                                    dependency = "${dependency.group}:${dependency.name}",
+                                )
                             }
                         }
                     }

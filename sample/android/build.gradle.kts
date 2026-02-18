@@ -18,7 +18,7 @@ android {
 }
 
 dependencies {
-    implementation(":domain:a")
+    implementation(project(":domain:a"))
     testImplementation(libs.junit)
     androidTestImplementation(project(":legacy:a"))
 }
