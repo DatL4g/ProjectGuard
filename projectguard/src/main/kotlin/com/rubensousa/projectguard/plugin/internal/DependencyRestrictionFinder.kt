@@ -20,7 +20,7 @@ internal class DependencyRestrictionFinder {
 
     fun find(
         moduleId: String,
-        graph: DependencyGraph,
+        graph: ConfigurationDependencyGraph,
         spec: ProjectGuardSpec,
     ): List<DependencyRestriction> {
         return find(
@@ -32,7 +32,7 @@ internal class DependencyRestrictionFinder {
 
     fun find(
         moduleId: String,
-        graphs: List<DependencyGraph>,
+        graphs: List<ConfigurationDependencyGraph>,
         spec: ProjectGuardSpec,
     ): List<DependencyRestriction> {
         val restrictions = mutableListOf<DependencyRestriction>()

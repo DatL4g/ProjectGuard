@@ -23,12 +23,12 @@ import org.gradle.api.artifacts.ProjectDependency
 
 internal class DependencyGraphBuilder {
 
-    fun buildFromDump(projectDump: DependencyGraphDump): List<DependencyGraph> {
-        val graphs = mutableMapOf<String, DependencyGraph>()
+    fun buildFromDump(projectDump: DependencyGraphDump): List<ConfigurationDependencyGraph> {
+        val graphs = mutableMapOf<String, ConfigurationDependencyGraph>()
         projectDump.modules.forEach { report ->
             report.configurations.forEach { configuration ->
                 val graph = graphs.getOrPut(configuration.id) {
-                    DependencyGraph(configurationId = configuration.id)
+                    ConfigurationDependencyGraph(id = configuration.id)
                 }
                 configuration.dependencies.forEach { dependency ->
                     if (dependency.isLibrary) {
@@ -48,12 +48,12 @@ internal class DependencyGraphBuilder {
         return graphs.values.toList()
     }
 
-    fun buildFromProject(project: Project): List<DependencyGraph> {
+    fun buildFromProject(project: Project): List<ConfigurationDependencyGraph> {
         return project.configurations
             .filter { config -> config.isCanBeResolved && DependencyConfiguration.isConfigurationSupported(config.name) }
             .map { config ->
-                val graph = DependencyGraph(
-                    configurationId = config.name,
+                val graph = ConfigurationDependencyGraph(
+                    id = config.name,
                 )
                 val moduleId = project.path
                 config.incoming.dependencies

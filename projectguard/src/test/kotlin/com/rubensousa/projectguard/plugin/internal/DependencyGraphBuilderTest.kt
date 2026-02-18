@@ -78,12 +78,12 @@ class DependencyGraphBuilderTest {
         )
     }
 
-    private fun List<DependencyGraph>.findCompilationGraph(): DependencyGraph? {
-        return this.find { it.configurationId == "compileClasspath" }
+    private fun List<ConfigurationDependencyGraph>.findCompilationGraph(): ConfigurationDependencyGraph? {
+        return this.find { it.id == "compileClasspath" }
     }
 
-    private fun List<DependencyGraph>.findTestGraph(): DependencyGraph? {
-        return this.find { it.configurationId == "testCompileClasspath" }
+    private fun List<ConfigurationDependencyGraph>.findTestGraph(): ConfigurationDependencyGraph? {
+        return this.find { it.id == "testCompileClasspath" }
     }
 
     private fun Project.addLegacyDependency(dependency: String): Project {

@@ -16,7 +16,7 @@
 
 package com.rubensousa.projectguard.plugin
 
-import com.rubensousa.projectguard.plugin.internal.DependencyGraph
+import com.rubensousa.projectguard.plugin.internal.ConfigurationDependencyGraph
 import com.rubensousa.projectguard.plugin.internal.ProjectGuardSpec
 import org.gradle.testfixtures.ProjectBuilder
 
@@ -30,8 +30,8 @@ internal fun projectGuard(scope: ProjectGuardScope.() -> Unit): ProjectGuardSpec
     return extension.getSpec()
 }
 
-internal fun buildDependencyGraph(scope: DependencyGraph.() -> Unit): DependencyGraph {
-    val graph = DependencyGraph("implementation")
+internal fun buildDependencyGraph(scope: ConfigurationDependencyGraph.() -> Unit): ConfigurationDependencyGraph {
+    val graph = ConfigurationDependencyGraph("implementation")
     graph.apply(scope)
     return graph
 }

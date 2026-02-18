@@ -17,7 +17,7 @@
 package com.rubensousa.projectguard.plugin
 
 import com.google.common.truth.Truth.assertThat
-import com.rubensousa.projectguard.plugin.internal.DependencyGraph
+import com.rubensousa.projectguard.plugin.internal.ConfigurationDependencyGraph
 import com.rubensousa.projectguard.plugin.internal.report.ConfigurationDependencies
 import com.rubensousa.projectguard.plugin.internal.report.DependencyGraphDump
 import com.rubensousa.projectguard.plugin.internal.report.DependencyGraphModuleDump
@@ -36,7 +36,7 @@ class TaskDependencyDumpTest {
     val temporaryFolder = TemporaryFolder()
 
     private val inputModule = "module"
-    private val dependencies = mutableListOf<DependencyGraph>()
+    private val dependencies = mutableListOf<ConfigurationDependencyGraph>()
     private lateinit var outputFile: File
     private lateinit var executor: DependencyDumpExecutor
 
@@ -56,15 +56,15 @@ class TaskDependencyDumpTest {
         val firstDependency = "domain:a"
         val secondDependency = "domain:b"
         dependencies.add(
-            DependencyGraph(
-                configurationId = "implementation",
+            ConfigurationDependencyGraph(
+                id = "implementation",
             ).apply {
                 addInternalDependency(inputModule, firstDependency)
             },
         )
         dependencies.add(
-            DependencyGraph(
-                configurationId = "testImplementation",
+            ConfigurationDependencyGraph(
+                id = "testImplementation",
             ).apply {
                 addInternalDependency(inputModule, secondDependency)
             },

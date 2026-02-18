@@ -16,7 +16,7 @@
 
 package com.rubensousa.projectguard.plugin
 
-import com.rubensousa.projectguard.plugin.internal.DependencyGraph
+import com.rubensousa.projectguard.plugin.internal.ConfigurationDependencyGraph
 import com.rubensousa.projectguard.plugin.internal.ProjectGuardSpec
 import com.rubensousa.projectguard.plugin.internal.task.AggregateDependencyDumpExecutor
 import com.rubensousa.projectguard.plugin.internal.task.AggregateRestrictionDumpExecutor
@@ -33,9 +33,9 @@ internal class DependencyPluginSimulator(
 
     fun dumpDependencies(
         moduleId: String,
-        action: DependencyGraph.() -> Unit = {},
+        action: ConfigurationDependencyGraph.() -> Unit = {},
     ): File {
-        val graph = DependencyGraph(configurationId = "compileClasspath")
+        val graph = ConfigurationDependencyGraph(id = "compileClasspath")
         graph.action()
         val outputFile = getDependencyFile(moduleId)
         val executor = DependencyDumpExecutor(

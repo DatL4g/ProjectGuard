@@ -16,7 +16,7 @@
 
 package com.rubensousa.projectguard.plugin.internal.task
 
-import com.rubensousa.projectguard.plugin.internal.DependencyGraph
+import com.rubensousa.projectguard.plugin.internal.ConfigurationDependencyGraph
 import com.rubensousa.projectguard.plugin.internal.report.ConfigurationDependencies
 import com.rubensousa.projectguard.plugin.internal.report.DependencyGraphDump
 import com.rubensousa.projectguard.plugin.internal.report.DependencyGraphModuleDump
@@ -39,7 +39,7 @@ internal abstract class TaskDependencyDump : DefaultTask() {
     internal abstract val projectPath: Property<String>
 
     @get:Input
-    internal abstract val dependencies: ListProperty<DependencyGraph>
+    internal abstract val dependencies: ListProperty<ConfigurationDependencyGraph>
 
     @get:OutputFile
     internal abstract val outputFile: RegularFileProperty
@@ -59,7 +59,7 @@ internal abstract class TaskDependencyDump : DefaultTask() {
 internal class DependencyDumpExecutor(
     private val moduleId: String,
     private val outputFile: File,
-    private val dependencyGraphs: List<DependencyGraph>,
+    private val dependencyGraphs: List<ConfigurationDependencyGraph>,
 ) {
 
     private val jsonWriter = JsonFileWriter()
@@ -71,7 +71,7 @@ internal class DependencyDumpExecutor(
                     module = moduleId,
                     configurations = dependencyGraphs.map { graph ->
                         ConfigurationDependencies(
-                            id = graph.configurationId,
+                            id = graph.id,
                             dependencies = graph.getDependencies(moduleId).toList().map { dependencyId ->
                                 DependencyReferenceDump(dependencyId, graph.isExternalLibrary(dependencyId))
                             }

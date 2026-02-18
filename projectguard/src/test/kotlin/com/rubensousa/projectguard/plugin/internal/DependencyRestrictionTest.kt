@@ -23,8 +23,8 @@ import kotlin.test.Test
 
 class DependencyRestrictionTest {
 
-    private val graph = DependencyGraph(
-        configurationId = "implementation"
+    private val graph = ConfigurationDependencyGraph(
+        id = "implementation"
     )
     private val finder = DependencyRestrictionFinder()
 
