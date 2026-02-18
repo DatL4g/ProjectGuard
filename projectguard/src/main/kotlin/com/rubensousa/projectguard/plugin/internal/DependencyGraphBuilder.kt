@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.rubensousa.projectguard.plugin.internal.report
+package com.rubensousa.projectguard.plugin.internal
 
-import com.rubensousa.projectguard.plugin.internal.DependencyGraph
+import com.rubensousa.projectguard.plugin.internal.report.DependencyGraphDump
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ProjectDependency
@@ -50,7 +50,7 @@ internal class DependencyGraphBuilder {
 
     fun buildFromProject(project: Project): List<DependencyGraph> {
         return project.configurations
-            .filter { config -> config.isCanBeResolved && isConfigurationSupported(config.name) }
+            .filter { config -> config.isCanBeResolved && DependencyConfiguration.isConfigurationSupported(config.name) }
             .map { config ->
                 val graph = DependencyGraph(
                     configurationId = config.name,
@@ -69,45 +69,14 @@ internal class DependencyGraphBuilder {
                             }
 
                             is ExternalModuleDependency -> {
-                                if (dependency.group == null) {
-                                    // Java/Kotlin libraries provided to android modules are treated as external modules
-                                    // TODO: Improve detection
-                                    graph.addInternalDependency(
-                                        module = moduleId,
-                                        dependency = ":${dependency.name}:${dependency.versionConstraint.displayName}"
-                                    )
-                                } else {
-                                    graph.addExternalDependency(
-                                        module = moduleId,
-                                        dependency = "${dependency.group}:${dependency.name}",
-                                    )
-                                }
+                                graph.addExternalDependency(
+                                    module = moduleId,
+                                    dependency = "${dependency.group}:${dependency.name}",
+                                )
                             }
                         }
                     }
                 graph
             }
     }
-
-
-    companion object {
-        private val supportedConfigurations = mutableSetOf(
-            "androidTestUtil",
-            "compileClasspath",
-            "testCompileClasspath",
-            "testFixturesCompileClasspath",
-        )
-
-        fun isConfigurationSupported(configurationId: String): Boolean {
-            return supportedConfigurations.any { pattern ->
-                configurationId.lowercase().contains(pattern.lowercase())
-            }
-        }
-
-        fun isReleaseConfiguration(configurationId: String): Boolean {
-            return configurationId == "compileClasspath"
-                    || configurationId.lowercase().contains("releasecompileclasspath")
-        }
-    }
-
 }
