@@ -23,17 +23,6 @@ import org.gradle.api.artifacts.ProjectDependency
 
 internal class DependencyGraphBuilder {
 
-    private val supportedConfigurations = mutableSetOf(
-        "compileClasspath",
-        "testCompileClasspath",
-        "testFixturesCompileClasspath",
-    )
-    private val androidConfigurationPatterns = mutableSetOf(
-        "androidTestUtil", // To exclude test orchestrator in some modules
-        "AndroidTestCompileClasspath", // Tests would include this configuration pattern for build types and flavors
-        "UnitTestCompileClasspath" // Tests would include this configuration pattern for build types and flavors
-    )
-
     fun buildFromDump(projectDump: DependencyGraphDump): List<DependencyGraph> {
         val graphs = mutableMapOf<String, DependencyGraph>()
         projectDump.modules.forEach { report ->
@@ -72,15 +61,27 @@ internal class DependencyGraphBuilder {
                         when (dependency) {
                             is ProjectDependency -> {
                                 if (dependency.path != moduleId) {
-                                    graph.addInternalDependency(moduleId, dependency.path)
+                                    graph.addInternalDependency(
+                                        module = moduleId,
+                                        dependency = dependency.path
+                                    )
                                 }
                             }
 
                             is ExternalModuleDependency -> {
-                                graph.addExternalDependency(
-                                    module = moduleId,
-                                    dependency = "${dependency.group}:${dependency.name}",
-                                )
+                                if (dependency.group == null) {
+                                    // Java/Kotlin libraries provided to android modules are treated as external modules
+                                    // TODO: Improve detection
+                                    graph.addInternalDependency(
+                                        module = moduleId,
+                                        dependency = ":${dependency.name}:${dependency.versionConstraint.displayName}"
+                                    )
+                                } else {
+                                    graph.addExternalDependency(
+                                        module = moduleId,
+                                        dependency = "${dependency.group}:${dependency.name}",
+                                    )
+                                }
                             }
                         }
                     }
@@ -88,12 +89,24 @@ internal class DependencyGraphBuilder {
             }
     }
 
-    private fun isConfigurationSupported(configurationId: String): Boolean {
-        if (supportedConfigurations.contains(configurationId)) {
-            return true
+
+    companion object {
+        private val supportedConfigurations = mutableSetOf(
+            "androidTestUtil",
+            "compileClasspath",
+            "testCompileClasspath",
+            "testFixturesCompileClasspath",
+        )
+
+        fun isConfigurationSupported(configurationId: String): Boolean {
+            return supportedConfigurations.any { pattern ->
+                configurationId.lowercase().contains(pattern.lowercase())
+            }
         }
-        return androidConfigurationPatterns.any { pattern ->
-            configurationId.contains(pattern)
+
+        fun isReleaseConfiguration(configurationId: String): Boolean {
+            return configurationId == "compileClasspath"
+                    || configurationId.lowercase().contains("releasecompileclasspath")
         }
     }
 

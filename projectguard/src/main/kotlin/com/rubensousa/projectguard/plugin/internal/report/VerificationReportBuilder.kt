@@ -75,8 +75,8 @@ internal class VerificationReportBuilder(
             report.configurations.forEach { configuration ->
                 // TODO: Until https://github.com/rubensousa/ProjectGuard/issues/3 is clarified,
                 //  filter out test dependencies from the graph reports
-                if (configuration.id == "compileClasspath") {
-                    val moduleDependencies = graph.getOrPut(report.module) { mutableSetOf() }
+                val moduleDependencies = graph.getOrPut(report.module) { mutableSetOf() }
+                if (DependencyGraphBuilder.isReleaseConfiguration(configuration.id)) {
                     moduleDependencies.addAll(configuration.dependencies.map { dependency ->
                         DependencyReferenceDump(dependency.id, dependency.isLibrary)
                     })
