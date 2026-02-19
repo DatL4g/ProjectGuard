@@ -144,7 +144,7 @@ class DependencyRestrictionTest {
         // given
         val spec = projectGuard {
             restrictDependency(":legacy") {
-                allow("legacy:a", "legacy:b")
+                allow(":legacy:a", ":legacy:b")
             }
         }
 
