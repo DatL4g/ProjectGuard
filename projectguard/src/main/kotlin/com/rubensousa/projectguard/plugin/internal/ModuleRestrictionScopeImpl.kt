@@ -19,6 +19,7 @@ package com.rubensousa.projectguard.plugin.internal
 import com.rubensousa.projectguard.plugin.ModuleRestrictionScope
 import com.rubensousa.projectguard.plugin.RestrictModuleRule
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.internal.catalog.DelegatingProjectDependency
 import org.gradle.api.provider.Provider
 
 internal class ModuleRestrictionScopeImpl : ModuleRestrictionScope {
@@ -30,24 +31,20 @@ internal class ModuleRestrictionScopeImpl : ModuleRestrictionScope {
         restrictionReason = reason
     }
 
-    override fun allow(modulePath: String) {
-        allowed.add(
-            ModuleAllowSpec(
-                modulePath = modulePath,
-            )
-        )
+    override fun allow(vararg modulePath: String) {
+        allowed.addAll(modulePath.map { path ->
+            ModuleAllowSpec(modulePath = path)
+        })
     }
 
-    override fun allowModules(modulePaths: List<String>) {
-        modulePaths.forEach { path -> allow(path) }
+    override fun allow(vararg moduleDelegation: DelegatingProjectDependency) {
+        allow(modulePath = moduleDelegation.map { module -> module.path }.toTypedArray())
     }
 
-    override fun allow(library: Provider<MinimalExternalModuleDependency>) {
-        allow(library.getDependencyPath())
-    }
-
-    override fun allowLibs(libraries: List<Provider<MinimalExternalModuleDependency>>) {
-        libraries.forEach { library -> allow(library) }
+    override fun allow(vararg library: Provider<MinimalExternalModuleDependency>) {
+        allow(modulePath = library.map { lib ->
+            lib.getDependencyPath()
+        }.toTypedArray())
     }
 
     override fun applyRule(rule: RestrictModuleRule) {

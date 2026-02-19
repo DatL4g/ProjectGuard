@@ -16,14 +16,16 @@
 
 package com.rubensousa.projectguard.plugin
 
+import org.gradle.api.internal.catalog.DelegatingProjectDependency
+
 
 interface DependencyRestrictionScope {
 
     fun reason(reason: String)
 
-    fun allow(modulePath: String)
+    fun allow(vararg modulePath: String)
 
-    fun allow(modulePaths: List<String>)
+    fun allow(vararg moduleDelegation: DelegatingProjectDependency)
 
     fun applyRule(rule: RestrictDependencyRule)
 

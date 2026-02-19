@@ -18,6 +18,7 @@ package com.rubensousa.projectguard.plugin.internal
 
 import com.rubensousa.projectguard.plugin.DependencyRestrictionScope
 import com.rubensousa.projectguard.plugin.RestrictDependencyRule
+import org.gradle.api.internal.catalog.DelegatingProjectDependency
 
 internal class DependencyRestrictionScopeImpl : DependencyRestrictionScope {
 
@@ -28,18 +29,14 @@ internal class DependencyRestrictionScopeImpl : DependencyRestrictionScope {
         restrictionReason = reason
     }
 
-    override fun allow(modulePath: String) {
-        allowed.add(
-            ModuleAllowSpec(
-                modulePath = modulePath,
-            )
-        )
+    override fun allow(vararg modulePath: String) {
+        allowed.addAll(modulePath.map { path ->
+            ModuleAllowSpec(modulePath = path)
+        })
     }
 
-    override fun allow(modulePaths: List<String>) {
-        modulePaths.forEach { path ->
-            allow(path)
-        }
+    override fun allow(vararg moduleDelegation: DelegatingProjectDependency) {
+        allow(modulePath = moduleDelegation.map { module -> module.path }.toTypedArray())
     }
 
     override fun applyRule(rule: RestrictDependencyRule) {

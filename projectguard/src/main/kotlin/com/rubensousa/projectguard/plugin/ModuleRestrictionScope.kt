@@ -17,19 +17,18 @@
 package com.rubensousa.projectguard.plugin
 
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.internal.catalog.DelegatingProjectDependency
 import org.gradle.api.provider.Provider
 
 interface ModuleRestrictionScope {
 
     fun reason(reason: String)
 
-    fun allow(modulePath: String)
+    fun allow(vararg modulePath: String)
 
-    fun allow(library: Provider<MinimalExternalModuleDependency>)
+    fun allow(vararg moduleDelegation: DelegatingProjectDependency)
 
-    fun allowModules(modulePaths: List<String>)
-
-    fun allowLibs(libraries: List<Provider<MinimalExternalModuleDependency>>)
+    fun allow(vararg library: Provider<MinimalExternalModuleDependency>)
 
     fun applyRule(rule: RestrictModuleRule)
 

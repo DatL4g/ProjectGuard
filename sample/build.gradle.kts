@@ -28,6 +28,10 @@ projectGuard {
         // Test dependencies are fine
         allow(libs.junit)
     }
+    restrictModule(":feature") {
+        allow(":feature:a", ":feature:b")
+        allow(projects.feature.c, projects.feature.d)
+    }
     restrictDependency(":legacy") {
         reason("Legacy modules should no longer be used")
 
