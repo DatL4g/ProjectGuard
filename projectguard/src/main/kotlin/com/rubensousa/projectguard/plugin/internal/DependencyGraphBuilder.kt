@@ -60,7 +60,8 @@ internal class DependencyGraphBuilder {
                                 if (dependency.path != moduleId) {
                                     graph.addInternalDependency(
                                         module = moduleId,
-                                        dependency = dependency.path
+                                        dependency = dependency.path,
+                                        configurationId = config.name
                                     )
                                 }
                             }
@@ -69,6 +70,7 @@ internal class DependencyGraphBuilder {
                                 graph.addExternalDependency(
                                     module = moduleId,
                                     dependency = "${dependency.group}:${dependency.name}",
+                                    configurationId = config.name
                                 )
                             }
                         }

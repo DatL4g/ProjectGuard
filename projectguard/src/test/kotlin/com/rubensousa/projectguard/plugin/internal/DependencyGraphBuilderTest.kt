@@ -56,6 +56,7 @@ class DependencyGraphBuilderTest {
         val graph = graphBuilder.buildFromProject(consumerProject)
 
         // then
+        assertThat(graph.getConfigurations()).hasSize(1)
         assertThat(graph.getDependencies(consumerProject.path)).isEqualTo(
             listOf(
                 DirectDependency(legacyProjectA.path),
@@ -74,6 +75,7 @@ class DependencyGraphBuilderTest {
         val graph = graphBuilder.buildFromProject(consumerProject)
 
         // then
+        assertThat(graph.getConfigurations()).hasSize(2)
         assertThat(graph.getDependencies(consumerProject.path)).isEqualTo(
             listOf(
                 DirectDependency(legacyProjectA.path),
