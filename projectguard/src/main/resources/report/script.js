@@ -1,5 +1,5 @@
 // The report data is injected by the report generator
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (window.REPORT_DATA) {
         initializeReport(window.REPORT_DATA);
     } else {
@@ -65,7 +65,7 @@ function renderForActiveTab(report) {
 }
 
 function setupGlobalEventListeners() {
-    document.body.addEventListener('click', function(event) {
+    document.body.addEventListener('click', function (event) {
         // Handle main card header clicks for expansion
         const cardHeader = event.target.closest('.card-header');
         if (cardHeader) {
@@ -77,7 +77,7 @@ function setupGlobalEventListeners() {
         }
     });
 
-    document.getElementById('sidebar').addEventListener('click', function(event) {
+    document.getElementById('sidebar').addEventListener('click', function (event) {
         const summary = event.target.closest('summary');
         if (summary) {
             event.preventDefault();
@@ -318,11 +318,19 @@ function renderByModuleView(report) {
     }
 
     container.innerHTML = sortedModules.map(module => {
-        const fatalMatches = module.fatal.map(match => ({item: match.pathToDependency, reason: match.reason}));
-        const suppressedMatches = module.suppressed.map(match => ({
-            item: match.pathToDependency,
-            reason: match.suppressionReason
-        }));
+        const fatalMatches = module.fatal
+            .sort((a, b) => {
+                return a.pathToDependency.localeCompare(b.pathToDependency);
+            })
+            .map(match => ({item: match.pathToDependency, reason: match.reason}));
+        const suppressedMatches = module.suppressed
+            .sort((a, b) => {
+                return a.pathToDependency.localeCompare(b.pathToDependency);
+            })
+            .map(match => ({
+                item: match.pathToDependency,
+                reason: match.suppressionReason
+            }));
         const icon = fatalMatches.length > 0 ? 'cancel' : 'block';
         return createRestrictionCard(
             icon,
