@@ -56,13 +56,9 @@ class DependencyGraphBuilderTest {
         val graph = graphBuilder.buildFromProject(consumerProject)
 
         // then
-        assertThat(graph.getConfigurations()).hasSize(1)
-        assertThat(graph.getDependencies(consumerProject.path)).isEqualTo(
-            listOf(
-                DirectDependency(legacyProjectA.path),
-                DirectDependency(legacyProjectB.path)
-            )
-        )
+        val compileConfiguration = graph.getConfigurations().find { it.id == DependencyConfiguration.COMPILE }!!
+        assertThat(compileConfiguration.getDependencies(consumerProject.path))
+            .isEqualTo(setOf(legacyProjectA.path, legacyProjectB.path))
     }
 
     @Test
@@ -75,13 +71,9 @@ class DependencyGraphBuilderTest {
         val graph = graphBuilder.buildFromProject(consumerProject)
 
         // then
-        assertThat(graph.getConfigurations()).hasSize(2)
-        assertThat(graph.getDependencies(consumerProject.path)).isEqualTo(
-            listOf(
-                DirectDependency(legacyProjectA.path),
-                DirectDependency(legacyProjectC.path)
-            )
-        )
+        val testConfiguration = graph.getConfigurations().find { it.id == DependencyConfiguration.TEST }!!
+        assertThat(testConfiguration.getDependencies(consumerProject.path))
+            .isEqualTo(setOf(legacyProjectA.path, legacyProjectC.path))
     }
 
     private fun Project.addLegacyDependency(dependency: String): Project {
