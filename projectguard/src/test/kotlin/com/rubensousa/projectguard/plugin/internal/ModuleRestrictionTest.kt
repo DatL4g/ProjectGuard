@@ -134,7 +134,7 @@ class ModuleRestrictionTest {
         // given
         val spec = projectGuard {
             restrictModule(":domain") {
-                allowModules(listOf(":domain:a", ":domain:b"))
+                allow(":domain:a", ":domain:b")
             }
         }
 

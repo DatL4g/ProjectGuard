@@ -28,6 +28,8 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ProjectGuardSample"
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 include(":data:a")
 include(":data:b")
 include(":data:c")
