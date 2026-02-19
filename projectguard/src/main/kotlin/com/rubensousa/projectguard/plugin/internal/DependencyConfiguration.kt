@@ -42,4 +42,8 @@ internal object DependencyConfiguration {
                 && !lowerCaseConfiguration.contains("metadata")
     }
 
+    fun isTestConfiguration(configurationId: String): Boolean {
+        return configurationId.lowercase().contains("test")
+    }
+
 }

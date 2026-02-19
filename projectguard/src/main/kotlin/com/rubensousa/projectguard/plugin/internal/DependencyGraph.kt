@@ -64,7 +64,6 @@ internal class DependencyGraph : Serializable {
                     TraversalState(
                         configurationId = configuration.id,
                         dependency = dependency,
-                        isFromTestDependency = !DependencyConfiguration.isReleaseConfiguration(configuration.id),
                         path = emptyList()
                     )
                 )
@@ -85,24 +84,18 @@ internal class DependencyGraph : Serializable {
                 )
             }
             visitedDependencies.add(currentDependency)
-            val targetConfigurations = if (currentTraversal.isFromTestDependency) {
-                // We've gone through a test dependency, search only for release configurations
-                configurations.values.filter { configuration ->
-                    DependencyConfiguration.isReleaseConfiguration(configuration.id)
-                }
-            } else {
-                configurations.values
-            }
-            targetConfigurations.forEach { configuration ->
-                configuration.getDependencies(currentDependency).forEach { nextDependency ->
-                    queue.addFirst(
-                        TraversalState(
-                            configurationId = configuration.id,
-                            isFromTestDependency = !DependencyConfiguration.isReleaseConfiguration(configuration.id),
-                            dependency = nextDependency,
-                            path = currentTraversal.path + currentDependency
+            configurations.values.forEach { configuration ->
+                // Search only for non-test configurations as they're not considered transitive at this point
+                if (!DependencyConfiguration.isTestConfiguration(configuration.id)) {
+                    configuration.getDependencies(currentDependency).forEach { nextDependency ->
+                        queue.addFirst(
+                            TraversalState(
+                                configurationId = configuration.id,
+                                dependency = nextDependency,
+                                path = currentTraversal.path + currentDependency
+                            )
                         )
-                    )
+                    }
                 }
             }
         }
@@ -122,7 +115,6 @@ internal class DependencyGraph : Serializable {
 
     private data class TraversalState(
         val configurationId: String,
-        val isFromTestDependency: Boolean,
         val dependency: String,
         val path: List<String>,
     )

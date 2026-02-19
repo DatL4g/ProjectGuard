@@ -169,6 +169,34 @@ class DependencyGraphTest {
     }
 
     @Test
+    fun `test implementation of a direct dependency is not considered a transitive dependency`() {
+        // given
+        val consumer = "consumer"
+        val consumerDependency = "dependencyA"
+        val dependencyOfConsumerDependency = "dependencyB"
+        graph.addInternalDependency(
+            configurationId = DependencyConfiguration.COMPILE,
+            module = consumer,
+            dependency = consumerDependency
+        )
+        graph.addInternalDependency(
+            configurationId = DependencyConfiguration.TEST,
+            module = consumerDependency,
+            dependency = dependencyOfConsumerDependency
+        )
+
+        // when
+        val dependencies = graph.getDependencies(consumer)
+
+        // then
+        assertThat(dependencies).isEqualTo(
+            listOf(
+                DirectDependency(consumerDependency),
+            )
+        )
+    }
+
+    @Test
     fun `graph can be deserialized`() {
         // given
         graph.addInternalDependency(
