@@ -1,6 +1,13 @@
 
 # CHANGELOG
 
+## 1.0.0-beta01 (2026-02-19)
+
+- Added support for KMP
+- Fixed transitive dependencies not being correctly calculated for test dependencies
+- Sort dependencies by their path in the html report
+- Description of the fatal matches is now printed in the check task
+
 ## 1.0.0-alpha07 (2026-02-18)
 
 - Added graph visualization section to the html report
