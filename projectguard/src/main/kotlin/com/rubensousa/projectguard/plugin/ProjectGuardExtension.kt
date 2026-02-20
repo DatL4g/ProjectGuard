@@ -53,11 +53,6 @@ abstract class ProjectGuardExtension @Inject constructor(
         )
     }
 
-    override fun restrictModule(
-        moduleDelegation: DelegatingProjectDependency,
-        action: Action<ModuleRestrictionScope>
-    ) = restrictModule(modulePath = moduleDelegation.path, action = action)
-
     override fun guard(modulePath: String, action: Action<GuardScope>) {
         val scope = GuardScopeImpl()
         action.execute(scope)
@@ -68,11 +63,6 @@ abstract class ProjectGuardExtension @Inject constructor(
             )
         )
     }
-
-    override fun guard(
-        moduleDelegation: DelegatingProjectDependency,
-        action: Action<GuardScope>
-    ) = guard(modulePath = moduleDelegation.path, action = action)
 
     override fun restrictDependency(
         dependencyPath: String,
@@ -88,11 +78,6 @@ abstract class ProjectGuardExtension @Inject constructor(
             )
         )
     }
-
-    override fun restrictDependency(
-        dependencyDelegation: DelegatingProjectDependency,
-        action: Action<DependencyRestrictionScope>
-    ) = restrictDependency(dependencyPath = dependencyDelegation.path, action = action)
 
     override fun restrictDependency(
         provider: Provider<MinimalExternalModuleDependency>,
