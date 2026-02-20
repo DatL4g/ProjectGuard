@@ -18,6 +18,7 @@ package com.rubensousa.projectguard.plugin
 
 import org.gradle.api.Action
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.internal.catalog.DelegatingProjectDependency
 import org.gradle.api.provider.Provider
 
 interface ProjectGuardScope {
@@ -55,6 +56,11 @@ interface ProjectGuardScope {
         action: Action<ModuleRestrictionScope>,
     )
 
+    fun restrictModule(
+        moduleDelegation: DelegatingProjectDependency,
+        action: Action<ModuleRestrictionScope>
+    )
+
     // Just here for groovy support
     fun restrictModule(modulePath: String) {
         restrictModule(modulePath, defaultModuleRestrictionScope)
@@ -90,6 +96,11 @@ interface ProjectGuardScope {
         action: Action<GuardScope>,
     )
 
+    fun guard(
+        moduleDelegation: DelegatingProjectDependency,
+        action: Action<GuardScope>
+    )
+
     /**
      * Example:
      *
@@ -118,6 +129,11 @@ interface ProjectGuardScope {
     fun restrictDependency(
         dependencyPath: String,
         action: Action<DependencyRestrictionScope>,
+    )
+
+    fun restrictDependency(
+        dependencyDelegation: DelegatingProjectDependency,
+        action: Action<DependencyRestrictionScope>
     )
 
     /**

@@ -26,6 +26,7 @@ import com.rubensousa.projectguard.plugin.internal.ProjectGuardSpec
 import com.rubensousa.projectguard.plugin.internal.getDependencyPath
 import org.gradle.api.Action
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
+import org.gradle.api.internal.catalog.DelegatingProjectDependency
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.listProperty
@@ -52,6 +53,11 @@ abstract class ProjectGuardExtension @Inject constructor(
         )
     }
 
+    override fun restrictModule(
+        moduleDelegation: DelegatingProjectDependency,
+        action: Action<ModuleRestrictionScope>
+    ) = restrictModule(modulePath = moduleDelegation.path, action = action)
+
     override fun guard(modulePath: String, action: Action<GuardScope>) {
         val scope = GuardScopeImpl()
         action.execute(scope)
@@ -62,6 +68,11 @@ abstract class ProjectGuardExtension @Inject constructor(
             )
         )
     }
+
+    override fun guard(
+        moduleDelegation: DelegatingProjectDependency,
+        action: Action<GuardScope>
+    ) = guard(modulePath = moduleDelegation.path, action = action)
 
     override fun restrictDependency(
         dependencyPath: String,
@@ -77,6 +88,11 @@ abstract class ProjectGuardExtension @Inject constructor(
             )
         )
     }
+
+    override fun restrictDependency(
+        dependencyDelegation: DelegatingProjectDependency,
+        action: Action<DependencyRestrictionScope>
+    ) = restrictDependency(dependencyPath = dependencyDelegation.path, action = action)
 
     override fun restrictDependency(
         provider: Provider<MinimalExternalModuleDependency>,
