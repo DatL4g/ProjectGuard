@@ -21,9 +21,19 @@ import java.io.Serializable
 internal class DependencyGraph : Serializable {
 
     private val configurations = mutableMapOf<String, Configuration>()
-    private val libraries = mutableSetOf<String>()
 
     fun getConfigurations() = configurations.values.toList()
+
+    fun addDependency(
+        module: String,
+        dependency: DirectDependency,
+        configurationId: String = DependencyConfiguration.COMPILE,
+    ) {
+        val configuration = configurations.getOrPut(configurationId) {
+            Configuration(configurationId)
+        }
+        configuration.add(module = module, dependency = dependency)
+    }
 
     fun addInternalDependency(
         module: String,
@@ -32,26 +42,21 @@ internal class DependencyGraph : Serializable {
     ) {
         addDependency(
             module = module,
-            dependency = dependency,
-            configurationId = configurationId
+            dependency = DirectDependency(dependency, isLibrary = false),
+            configurationId = configurationId,
         )
     }
 
-    fun addExternalDependency(
+    fun addLibraryDependency(
         module: String,
         dependency: String,
         configurationId: String = DependencyConfiguration.COMPILE,
     ) {
         addDependency(
             module = module,
-            dependency = dependency,
+            dependency = DirectDependency(dependency, isLibrary = true),
             configurationId = configurationId
         )
-        libraries.add(dependency)
-    }
-
-    fun isExternalLibrary(dependency: String): Boolean {
-        return libraries.contains(dependency)
     }
 
     fun getDependencies(module: String): List<Dependency> {
@@ -72,27 +77,28 @@ internal class DependencyGraph : Serializable {
         while (queue.isNotEmpty()) {
             val currentTraversal = queue.removeFirst()
             val currentDependency = currentTraversal.dependency
-            if (visitedDependencies.contains(currentDependency)) {
+            if (visitedDependencies.contains(currentDependency.id)) {
                 continue
             }
-            paths[currentDependency] = if (currentTraversal.path.isEmpty()) {
-                DirectDependency(currentDependency)
+            paths[currentDependency.id] = if (currentTraversal.path.isEmpty()) {
+                currentDependency
             } else {
                 TransitiveDependency(
-                    currentDependency,
-                    currentTraversal.path + currentDependency
+                    id = currentDependency.id,
+                    isLibrary = currentDependency.isLibrary,
+                    path = currentTraversal.path + currentDependency.id,
                 )
             }
-            visitedDependencies.add(currentDependency)
+            visitedDependencies.add(currentDependency.id)
             configurations.values.forEach { configuration ->
                 // Search only for non-test configurations as they're not considered transitive at this point
                 if (!DependencyConfiguration.isTestConfiguration(configuration.id)) {
-                    configuration.getDependencies(currentDependency).forEach { nextDependency ->
+                    configuration.getDependencies(currentDependency.id).forEach { nextDependency ->
                         queue.addFirst(
                             TraversalState(
                                 configurationId = configuration.id,
                                 dependency = nextDependency,
-                                path = currentTraversal.path + currentDependency
+                                path = currentTraversal.path + currentDependency.id
                             )
                         )
                     }
@@ -102,33 +108,22 @@ internal class DependencyGraph : Serializable {
         return paths.values.sortedBy { it.id }
     }
 
-    private fun addDependency(
-        module: String,
-        dependency: String,
-        configurationId: String,
-    ) {
-        val configuration = configurations.getOrPut(configurationId) {
-            Configuration(configurationId)
-        }
-        configuration.add(module = module, dependency = dependency)
-    }
-
     private data class TraversalState(
         val configurationId: String,
-        val dependency: String,
+        val dependency: DirectDependency,
         val path: List<String>,
     )
 
     class Configuration(val id: String) : Serializable {
 
-        private val nodes = mutableMapOf<String, MutableSet<String>>()
+        private val nodes = mutableMapOf<String, MutableSet<DirectDependency>>()
 
-        fun add(module: String, dependency: String) {
+        fun add(module: String, dependency: DirectDependency) {
             val existingDependencies = nodes.getOrPut(module) { mutableSetOf() }
             existingDependencies.add(dependency)
         }
 
-        fun getDependencies(module: String): Set<String> {
+        fun getDependencies(module: String): Set<DirectDependency> {
             return nodes[module] ?: emptySet()
         }
 
@@ -148,14 +143,11 @@ internal class DependencyGraph : Serializable {
 
     override fun equals(other: Any?): Boolean {
         return other is DependencyGraph
-                && other.libraries == this.libraries
                 && other.configurations == this.configurations
     }
 
     override fun hashCode(): Int {
-        var result = configurations.hashCode()
-        result = 31 * result + libraries.hashCode()
-        return result
+        return configurations.hashCode()
     }
 
 
